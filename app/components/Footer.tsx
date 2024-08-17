@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 export const Footer = () => {
   const date = new Date();
@@ -12,9 +13,11 @@ export const Footer = () => {
             href="https://yusronizza.github.io/"
             className="flex items-center mb-4 sm:mb-0 space-x-3 rtl:space-x-reverse"
           >
-            <img
+            <Image
               src="https://flowbite.com/docs/images/logo.svg"
               className="h-8"
+              width={50}
+              height={50}
               alt="Yusron Izza"
             />
             <span className="self-center text-2xl font-semibold whitespace-nowrap">
