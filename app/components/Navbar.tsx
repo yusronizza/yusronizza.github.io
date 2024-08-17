@@ -10,7 +10,28 @@ export const Navbar = () => {
         <a href="" className="text-1xl font-bold">
           Curriculum Vitae
         </a>
-        <div></div>
+        <div className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
+          <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0">
+            <li>
+              <a href="#" aria-current="page" className="text-amber-700">Home</a>
+            </li>
+            <li>
+              <a href="about">About</a>
+            </li>
+            <li>
+              <a href="business">Business</a>
+            </li>
+            <li>
+              <a href="services">Services</a>
+            </li>
+            <li>
+              <a href="projects">Projects</a>
+            </li>
+            <li>
+              <a href="mailto:yusronizzafaradisa@gmail.com">Contact</a>
+            </li>
+          </ul>
+        </div>
       </div>
     </nav>
   );
