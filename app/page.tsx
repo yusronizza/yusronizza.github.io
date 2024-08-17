@@ -52,7 +52,7 @@ export default function Home() {
                     Universitas Gadjah Mada (UGM)
                     <div className="text-gray-500 text-sm">Yogyakarta, Indonesia</div>
                   </div>
-                  <div>Bachelor's degree, Electrical Engineering</div>
+                  <div>Bachelor&apos;s degree, Electrical Engineering</div>
                   <div className="text-sm">Activities and societies: Keluarga Mahasiswa Teknik Elektro dan Teknologi Informasi, Festival Gadjah Mada 2021, Technocorner UGM, Paguyuban Karya Salemba Empat UGM, PIMNAS 35</div>
                 </div>
                 <div className="text-left basis-1/7">
