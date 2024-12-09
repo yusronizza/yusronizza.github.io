@@ -6,7 +6,7 @@ export const Footer = () => {
   const year = date.getFullYear();
 
   return (
-    <footer className="bg-white shadow-xl shadow-inner p-8 text-black">
+    <footer className="bg-white shadow-xl shadow-inner shadow-lg p-8 text-black">
       <div className="flex items-center flex-col w-full max-w-screen-xl mx-auto">
           <ul className="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-500">
             <li>

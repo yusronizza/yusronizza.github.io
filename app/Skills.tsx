@@ -3,7 +3,7 @@ import Image from "next/image";
 export const Skills = () => {
     const image_container = "flex justify-center items-center"
     return(
-        <div id="section-skill" className="bg-white rounded-xl p-4 shadow-md w-full">
+        <div className="bg-white rounded-md p-4 shadow-md ml-80 w-half">
         <div className="z-10 w-full items-center justify-between">
           <div className="flex flex-col w-full justify-center items-center">
             <div className="font-bold text-2xl text-center">SKILLS</div>
@@ -108,51 +108,6 @@ export const Skills = () => {
                 </div>
                 <div className="text-center">
                   Vivado
-                </div>
-              </div>
-            </div>
-            <div className="font-bold text-gray-600 text-sm text-center py-2">Framework</div>
-            <div className="flex flex-row gap-x-8 my-4">
-              <div className="flex flex-col ">
-                <div className={image_container}>
-                  <Image
-                    src="/tools/altium-designer.png"
-                    alt="Next.js Logo"
-                    width={56}
-                    height={56}
-                    priority
-                  />
-                </div>
-                <div className="text-center">
-                  Next.js
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <div className={image_container}>
-                  <Image
-                    src="/tools/vitis.png"
-                    alt="Next.js Logo"
-                    width={150}
-                    height={50}
-                    priority
-                  />
-                </div>
-                <div className="text-center">
-                  TensorFlow
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <div className={image_container}>
-                  <Image
-                    src="/tools/vivado.png"
-                    alt="Next.js Logo"
-                    width={56}
-                    height={56}
-                    priority
-                  />
-                </div>
-                <div className="text-center">
-                  Tailwind CSS
                 </div>
               </div>
             </div>
