@@ -9,7 +9,7 @@ export const Navbar = () => {
       <div className="bg-white text-black px-8 py-4 z-40 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
           <a href="" className="text-md pl-28">
-            Yusron Izza's Online CV
+            Online CV
           </a>
           <div className="items-center justify-between hidden w-full md:flex md:w-auto md:order-1">
             <ul className="text-md flex flex-col px-4 md:pr-28 md:p-0 mt-4 border border-gray-100 rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0">
