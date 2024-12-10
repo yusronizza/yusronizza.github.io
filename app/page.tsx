@@ -83,7 +83,7 @@ export default function Home() {
                   <div className="">Logo</div>
                   <div className="">
                     <span className="font-bold text-sm">Embedded System</span>
-                    <p>Creating electronics design</p>
+                    <p>Creating embedded system design</p>
                   </div>
                 </div>
                 <div className="flex w-full bg-white rounded-md p-2 gap-x-2 outline outline-offset-2 outline-1 outline-gray-300 shadow-sm">
@@ -97,7 +97,7 @@ export default function Home() {
                   <div className="">Logo</div>
                   <div className="">
                     <span className="font-bold text-sm">ASIC</span>
-                    <p>Creating electronics design</p>
+                    <p>Interested in ASIC design flow</p>
                   </div>
                 </div>
               </div>
