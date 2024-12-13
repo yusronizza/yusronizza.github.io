@@ -77,7 +77,7 @@ export default function Home() {
               <div className={section_center}>
                   Yusron Izza F is an undergraduate electrical engineering student at Universitas Gadjah Mada. He loves science and technology especially in electronics, computer, and programming. He has a strong foundation in computer programming, electronics design, and computer architecture. He likes to work in groups and lead groups. 
               </div>
-              <div className="font-bold">Area of Expertise</div>
+              <div className="font-bold">Area of Interest</div>
               <div className="flex flex-col md:flex-row gap-x-4 py-2 mb-2">
                 <div className="flex w-full bg-white rounded-md p-2 gap-x-2 outline outline-offset-2 outline-1 outline-gray-300 shadow-sm">
                   <div className="">Logo</div>
