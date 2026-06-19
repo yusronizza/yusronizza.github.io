@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# yusronizza.github.io
 
-## Getting Started
+Personal portfolio, CV, and blog, built with Next.js (App Router) and Tailwind CSS, exported as a fully static site for GitHub Pages.
 
-First, run the development server:
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build   # static export to ./out
+npm run lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Editing content
 
-## Learn More
+All content is mocked in plain TypeScript modules — there is no CMS or database. Edit the files below and the site rebuilds from them automatically:
 
-To learn more about Next.js, take a look at the following resources:
+| What                          | File                          |
+| ------------------------------ | ------------------------------ |
+| Name, social links, nav, SEO defaults | `lib/config/site.ts`     |
+| About/CV content (bio, experience, education, skills) | `lib/data/profile.ts` |
+| Projects                       | `lib/data/projects.ts`        |
+| Blog posts                     | `lib/data/posts.ts`           |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Set `NEXT_PUBLIC_SITE_URL` (see `.env.example`) to your production domain — it drives canonical URLs, the sitemap, and Open Graph tags.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project structure
 
-## Deploy on Vercel
+```
+app/                  Routing & page composition (thin — delegates to components/lib)
+  about/, cv/, projects/, blog/   Route segments
+  sitemap.ts, robots.ts, manifest.ts, opengraph-image.tsx   SEO file conventions
+components/
+  layout/              Header, Footer, Container
+  ui/                  Generic presentational primitives (Card, Badge, Button, ...)
+  home/, projects/, blog/, cv/   Domain-specific presentational components
+  seo/                 JSON-LD structured data renderer
+  theme/               Dark/light theme toggle + FOUC-prevention script
+lib/
+  config/site.ts       Single source of truth for site identity & nav
+  data/                 Dummy content + accessor functions (profile, projects, posts)
+  seo/                  Metadata + JSON-LD schema builders
+  utils/                Formatting helpers
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This separation keeps routing, presentation, and data access independent: swapping the dummy data module for a real CMS or API later only touches `lib/data/`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## SEO
+
+- Per-page `generateMetadata`/static `metadata` with canonical URLs, Open Graph and Twitter Card tags.
+- `sitemap.ts` and `robots.ts` generated from the same data that powers the pages, so they never drift out of sync.
+- JSON-LD structured data (`Person`, `WebSite`, `BlogPosting`, `BreadcrumbList`) for richer search results.
+- A generated default Open Graph image (`app/opengraph-image.tsx`).
+
+## Deployment
+
+Static export (`output: "export"` in `next.config.ts`) builds to `out/`, which can be hosted on any static file host. A GitHub Actions workflow (`.github/workflows/deploy.yml`) builds and deploys `out/` to GitHub Pages on every push to `main`.
+
+To enable it: in the repo's Settings → Pages, set the source to "GitHub Actions".
