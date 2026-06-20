@@ -1,5 +1,5 @@
 /**
- * Profile/CV data, sourced from public/Yusron_Izza_Faradisa_CV.pdf.
+ * Profile/CV data, sourced from public/files/Yusron_Izza_Faradisa_CV.pdf.
  * Update that PDF and this file together so the site and the downloadable
  * CV stay in sync.
  */
@@ -68,15 +68,15 @@ export type Profile = {
 
 export const profile: Profile = {
   name: "Yusron Izza Faradisa",
-  title: "Embedded Systems & IoT Engineer",
-  location: "East Jakarta, Indonesia",
+  title: "Embedded Systems & Digital Systems Engineer",
+  location: "Nagoya, Japan",
   phone: "+62 823-2385-8260",
   website: "https://yusronizza.com",
-  tagline: "Building high-performance, scalable embedded and IoT solutions.",
+  tagline: "Building high-performance, scalable embedded and digital systems.",
   bio: [
-    "I'm an embedded systems and IoT engineer with hands-on experience across microcontrollers, IoT, API integration, cloud services, and embedded software development on Raspberry Pi and STM32. I enjoy optimizing resource-constrained systems and collaborating across hardware and software boundaries.",
-    "Most recently, I've been building firmware and a payment-gateway integration for IoT devices at PT Nusapala Berkah Autonomous, after working on FPGA-based RF signal processing at PT Len Industri and instrumentation systems at PT Nusa Halmahera Minerals.",
-    "Outside of my day-to-day work, I teach robotics to elementary students at Jago Robotika, and I spent a short exchange program at Ehime University researching LLM-based lie detection — a reminder that I enjoy stretching beyond hardware into adjacent fields like machine learning.",
+    "I'm an embedded systems and digital systems engineer with hands-on experience across digital systems and hardware-software integration. I am interested in digital design, VLSI, robotics, and mission-critical systems. I am currently based in Nagoya, Japan, where I am furthering my expertise in embedded systems and digital design.",
+    "I have an experience in programming languages including Python, Go, C, Verilog, and MATLAB, also tools like Vivado, Vitis, STM32CubeIDE, Git, and VS Code. My experience spans from developing firmware libraries to designing embedded systems and contributing to robotics education.",
+    "I am passionate about continuous learning and applying my skills to solve complex engineering challenges, particularly in the fields of embedded systems, digital design, and robotics. I am currently based in Nagoya, Japan, where I am furthering my expertise in embedded systems and digital design.",
   ],
   skills: [
     {
@@ -360,13 +360,21 @@ export const profile: Profile = {
   languages: [
     { name: "Indonesian", level: "Native" },
     { name: "English", level: "Business" },
-    { name: "Japanese", level: "N5" },
+    { name: "Japanese", level: "N4" },
   ],
   interests: [
-    "Embedded Systems",
-    "FPGA & Digital Design",
-    "Robotics Education",
-    "Machine Learning",
+    "Mission-Critical Systems",
+    "Computer Architecture",
     "RISC-V Architecture",
+    "Digital Signal Processing",
+    "Digital Systems Design",
+    "Digital Design & Verification",
+    "Digital Communication Systems",
+    "Digital Control Systems",
+    "Digital Electronics & Microcontrollers",
+    "Embedded Systems & IoT",
+    "Machine Learning & AI Chips",
+    "Robotics & Automation",
+    "Robotics Education",
   ],
 };

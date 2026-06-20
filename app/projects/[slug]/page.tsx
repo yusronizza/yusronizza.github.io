@@ -86,7 +86,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </div>
       </Section>
 
-      <Section title="Highlights" className="border-t border-border">
+      <Section title="Highlights" index={1} className="border-t border-border">
         <ul className="list-disc space-y-2 pl-5 text-sm text-muted">
           {project.highlights.map((highlight) => (
             <li key={highlight}>{highlight}</li>

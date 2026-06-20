@@ -3,18 +3,18 @@
  * Edit this file to rebrand the site without touching page/component code.
  */
 
-const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yusronizza.github.io";
+const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yusronizza.com";
 
 export const siteConfig = {
   name: "Yusron Izza Faradisa",
   shortName: "Yusron Izza",
   url: rawSiteUrl.replace(/\/+$/, ""),
   titleTemplate: "%s | Yusron Izza Faradisa",
-  defaultTitle: "Yusron Izza Faradisa — Embedded Systems & IoT Engineer",
+  defaultTitle: "Yusron Izza Faradisa — Embedded Systems & Digital Systems Engineer",
   description:
-    "Portfolio of Yusron Izza Faradisa, an embedded systems and IoT engineer specializing in microcontrollers, FPGA, and embedded software for Raspberry Pi and STM32.",
+    "Portfolio of Yusron Izza Faradisa, an embedded systems and digital systems engineer.",
   locale: "en_US",
-  themeColor: "#0f172a",
+  themeColor: "#090907",
   author: {
     name: "Yusron Izza Faradisa",
     email: "yusronizzafaradisa@gmail.com",

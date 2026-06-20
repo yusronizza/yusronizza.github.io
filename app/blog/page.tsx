@@ -23,7 +23,7 @@ export default function BlogPage() {
         title="Writing"
         description="Notes on software engineering, architecture and building things."
       />
-      <div className="py-12 sm:py-16">
+      <div className="grid gap-4 py-12 sm:grid-cols-2 sm:py-16">
         {posts.map((post) => (
           <PostCard key={post.slug} post={post} />
         ))}

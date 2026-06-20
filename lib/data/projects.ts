@@ -1,5 +1,5 @@
 /**
- * Project data, sourced from public/Yusron_Izza_Faradisa_CV.pdf.
+ * Project data, sourced from public/files/Yusron_Izza_Faradisa_CV.pdf.
  * Add new entries here as new projects ship — listing and detail pages
  * are generated automatically from this array.
  */
@@ -25,20 +25,24 @@ export const projects: Project[] = [
     slug: "risc-v-32i-microprocessor",
     title: "RISC-V 32I Base Integer Microprocessor",
     description:
-      "A 32-bit RISC-V processor in Verilog, with single-cycle and pipelined architectures and M-extension support.",
+      "A from-scratch RV32I processor in Verilog, with single-cycle and 5-stage pipelined implementations, hazard handling, and M-extension support.",
     longDescription: [
-      "A personal project to design and implement a 32-bit RISC-V processor in Verilog, providing both single-cycle and pipelined architectures.",
-      "The instruction set was extended with the M (Multiply/Divide) extension to enhance functionality and performance, and verified through simulation and testbench development to ensure compliance with the RISC-V specification.",
+      "A from-scratch implementation of the RISC-V RV32I base integer instruction set in Verilog, built to explore processor microarchitecture beyond the textbook: a single-cycle datapath alongside a modular 5-stage pipeline (fetch, decode, execute, memory, write-back).",
+      "The pipelined version handles data and control hazards directly — forwarding and stalling logic live in a dedicated hazard unit rather than being bolted onto the datapath — and the instruction set was extended with the M (multiply/divide) extension on top of the RV32I base.",
+      "Every module — ALU, control unit, register file, hazard unit — is verified independently with its own testbench before integration, and the full core is validated against the RISC-V specification through simulation.",
     ],
     tags: ["Verilog", "RISC-V", "Computer Architecture"],
     role: "Personal Project",
     year: 2024,
     featured: true,
-    links: {},
+    links: {
+      repo: "https://github.com/yusronizza/riscv",
+    },
     highlights: [
-      "Designed and implemented a 32-bit RISC-V processor in Verilog, providing both single-cycle and pipelined architectures.",
-      "Extended the ISA with M (Multiply/Divide) instruction set extensions to enhance functionality and performance.",
-      "Verified functionality through simulation and testbench development, ensuring compliance with the RISC-V specification.",
+      "Implemented the RV32I base integer ISA with both a single-cycle datapath and a 5-stage pipelined microarchitecture (IF/ID/EX/MEM/WB).",
+      "Designed a dedicated hazard unit for data and control hazard detection, with forwarding and stalling to keep the pipeline correct under dependencies.",
+      "Extended the ISA with the M (multiply/divide) extension on top of the RV32I base.",
+      "Verified each module independently via testbenches, then validated the integrated core against the RISC-V specification through simulation.",
     ],
   },
 ];

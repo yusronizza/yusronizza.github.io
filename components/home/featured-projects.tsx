@@ -7,7 +7,7 @@ export function FeaturedProjects() {
   const featured = getFeaturedProjects();
 
   return (
-    <Section title="Featured projects" className="border-t border-border">
+    <Section title="Featured projects" index={2} className="border-t border-border">
       <div className="grid gap-4 sm:grid-cols-2">
         {featured.map((project) => (
           <ProjectCard key={project.slug} project={project} />
@@ -15,9 +15,9 @@ export function FeaturedProjects() {
       </div>
       <Link
         href="/projects"
-        className="mt-6 inline-block text-sm font-medium text-accent hover:underline"
+        className="mt-6 inline-block font-mono text-sm text-accent hover:underline"
       >
-        View all projects &rarr;
+        [view all projects &rarr;]
       </Link>
     </Section>
   );

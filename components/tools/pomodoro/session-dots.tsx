@@ -6,7 +6,7 @@ export function SessionDots({ total, completed }: { total: number; completed: nu
       {Array.from({ length: total }, (_, index) => (
         <span
           key={index}
-          className={`h-2 w-2 rounded-full transition-colors ${
+          className={`h-2 w-2 transition-colors ${
             index < positionInCycle ? "bg-accent" : "bg-border"
           }`}
         />

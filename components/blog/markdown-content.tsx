@@ -24,10 +24,12 @@ const components: Components = {
   hr: () => <hr className="my-8 border-border" />,
   strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
   code: ({ children }) => (
-    <code className="rounded bg-surface px-1.5 py-0.5 font-mono text-sm">{children}</code>
+    <code className="border border-border bg-surface px-1.5 py-0.5 font-mono text-sm text-accent">
+      {children}
+    </code>
   ),
   pre: ({ children }) => (
-    <pre className="mt-4 overflow-x-auto rounded-xl border border-border bg-surface p-4 text-sm">
+    <pre className="mt-4 overflow-x-auto border border-border bg-surface p-4 text-sm">
       {children}
     </pre>
   ),

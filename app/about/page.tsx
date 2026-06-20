@@ -27,7 +27,7 @@ export default function AboutPage() {
         </div>
       </Section>
 
-      <Section title="Languages" className="border-t border-border">
+      <Section title="Languages" index={1} className="border-t border-border">
         <ul className="space-y-2 text-sm">
           {profile.languages.map((language) => (
             <li key={language.name} className="flex justify-between border-b border-border py-2 last:border-b-0">
@@ -38,7 +38,7 @@ export default function AboutPage() {
         </ul>
       </Section>
 
-      <Section title="Interests" className="border-t border-border">
+      <Section title="Interests" index={2} className="border-t border-border">
         <div className="flex flex-wrap gap-2">
           {profile.interests.map((interest) => (
             <Badge key={interest}>{interest}</Badge>

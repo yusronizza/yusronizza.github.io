@@ -17,25 +17,25 @@ export default function Image() {
           flexDirection: "column",
           justifyContent: "center",
           padding: "80px",
-          backgroundColor: "#0a0a0c",
-          color: "#f1f5f9",
-          fontFamily: "sans-serif",
+          backgroundColor: "#090907",
+          color: "#f3f1e7",
+          fontFamily: "monospace",
         }}
       >
         <div
           style={{
             fontSize: 28,
-            color: "#818cf8",
+            color: "#f0a830",
             letterSpacing: 4,
             textTransform: "uppercase",
           }}
         >
-          {profile.title}
+          {`// ${profile.title}`}
         </div>
-        <div style={{ fontSize: 72, fontWeight: 600, marginTop: 24, lineHeight: 1.1 }}>
+        <div style={{ fontSize: 72, fontWeight: 600, marginTop: 24, lineHeight: 1.1, fontFamily: "sans-serif" }}>
           {siteConfig.name}
         </div>
-        <div style={{ fontSize: 30, color: "#94a3b8", marginTop: 28 }}>
+        <div style={{ fontSize: 30, color: "#8e8c7c", marginTop: 28, fontFamily: "sans-serif" }}>
           {profile.tagline}
         </div>
       </div>

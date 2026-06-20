@@ -4,8 +4,11 @@ import { profile } from "@/lib/data/profile";
 export function Hero() {
   return (
     <section className="flex flex-col gap-6 py-16 sm:py-24">
-      <p className="font-mono text-sm uppercase tracking-widest text-accent">
-        {profile.title} &middot; {profile.location}
+      <p className="font-mono text-sm text-muted">
+        <span className="text-accent">{">"}</span> whoami
+      </p>
+      <p className="font-mono text-sm tracking-widest text-accent">
+        {profile.title} {"//"} {profile.location}
       </p>
       <h1 className="max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl">
         {profile.tagline}
@@ -17,6 +20,10 @@ export function Hero() {
           See full CV
         </LinkButton>
       </div>
+      <p className="flex items-center gap-2 font-mono text-xs text-muted">
+        ready
+        <span className="inline-block h-3 w-1.5 animate-pulse bg-accent" aria-hidden="true" />
+      </p>
     </section>
   );
 }

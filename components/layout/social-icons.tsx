@@ -1,7 +1,7 @@
 import { siteConfig } from "@/lib/config/site";
 
 const iconLinkClassName =
-  "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-accent hover:text-accent";
+  "inline-flex h-9 w-9 items-center justify-center border border-border text-foreground transition-colors hover:border-accent hover:text-accent";
 
 export function SocialIconLinks({ className = "" }: { className?: string }) {
   return (

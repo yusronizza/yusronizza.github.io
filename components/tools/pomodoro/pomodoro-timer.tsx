@@ -91,10 +91,10 @@ export function PomodoroTimer() {
       </p>
 
       <details className="w-full max-w-md">
-        <summary className="cursor-pointer text-center text-sm font-medium text-muted hover:text-accent">
-          Settings
+        <summary className="cursor-pointer text-center font-mono text-sm text-muted hover:text-accent">
+          [settings]
         </summary>
-        <div className="mt-6 rounded-2xl border border-border bg-surface p-6">
+        <div className="mt-6 border border-border bg-surface p-6">
           <SettingsPanel
             settings={settings}
             notificationPermission={notificationPermission}

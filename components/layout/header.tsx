@@ -18,26 +18,34 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur print:hidden">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur print:hidden">
       <Container className="flex h-16 items-center justify-between">
         <Link href="/" className="font-mono text-sm font-semibold tracking-tight">
+          <span className="text-accent">~/</span>
           {siteConfig.shortName}
         </Link>
 
         <nav className="hidden items-center gap-1 sm:flex">
-          {siteConfig.nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-                isActive(item.href)
-                  ? "bg-surface text-foreground"
-                  : "text-muted hover:text-foreground"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {siteConfig.nav.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`px-2.5 py-1.5 font-mono text-sm transition-colors ${
+                  active ? "text-accent" : "text-muted hover:text-foreground"
+                }`}
+              >
+                <span aria-hidden="true" className={active ? "text-accent" : "text-transparent"}>
+                  [
+                </span>
+                {item.label}
+                <span aria-hidden="true" className={active ? "text-accent" : "text-transparent"}>
+                  ]
+                </span>
+              </Link>
+            );
+          })}
           <div className="ml-2 flex items-center gap-2 border-l border-border pl-3">
             <SocialIconLinks />
             <ThemeToggle />
@@ -51,7 +59,7 @@ export function Header() {
             aria-label="Toggle navigation menu"
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((open) => !open)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border"
+            className="inline-flex h-9 w-9 items-center justify-center border border-border text-foreground"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-4 w-4">
               {isMenuOpen ? (
@@ -67,18 +75,25 @@ export function Header() {
       {isMenuOpen && (
         <nav className="border-t border-border sm:hidden">
           <Container className="flex flex-col py-2">
-            {siteConfig.nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsMenuOpen(false)}
-                className={`rounded-lg px-3 py-2 text-sm ${
-                  isActive(item.href) ? "bg-surface text-foreground" : "text-muted"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {siteConfig.nav.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`px-3 py-2 font-mono text-sm ${active ? "text-accent" : "text-muted"}`}
+                >
+                  <span aria-hidden="true" className={active ? "text-accent" : "text-transparent"}>
+                    [
+                  </span>
+                  {item.label}
+                  <span aria-hidden="true" className={active ? "text-accent" : "text-transparent"}>
+                    ]
+                  </span>
+                </Link>
+              );
+            })}
             <SocialIconLinks className="mt-2 border-t border-border px-3 pt-3" />
           </Container>
         </nav>

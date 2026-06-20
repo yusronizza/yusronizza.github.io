@@ -12,10 +12,11 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="border-b border-border py-12 sm:py-16">
+    <div className="border-b border-border py-12 shadow-[inset_0_3px_0_0_var(--accent)] sm:py-16">
       {eyebrow && (
-        <p className="mb-3 font-mono text-sm uppercase tracking-widest text-accent">
-          {eyebrow}
+        <p className="mb-3 font-mono text-sm tracking-widest text-accent">
+          <span aria-hidden="true">{"// "}</span>
+          {eyebrow.toUpperCase()}
         </p>
       )}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">

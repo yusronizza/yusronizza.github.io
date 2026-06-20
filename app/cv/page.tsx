@@ -32,7 +32,7 @@ export default function CvPage() {
         description={profile.title}
         actions={
           <>
-            <LinkButton href="/Yusron_Izza_Faradisa_CV.pdf" external>
+            <LinkButton href="/files/Yusron_Izza_Faradisa_CV.pdf" external>
               Download CV (PDF)
             </LinkButton>
             <PrintButton />
@@ -42,7 +42,7 @@ export default function CvPage() {
 
       <ContactRow profile={profile} />
 
-      <Section title="Experience">
+      <Section title="Experience" index={1}>
         <div>
           {profile.experience.map((entry) => (
             <ExperienceItem key={`${entry.role}-${entry.organization}-${entry.startDate}`} entry={entry} />
@@ -50,7 +50,7 @@ export default function CvPage() {
         </div>
       </Section>
 
-      <Section title="Education" className="border-t border-border">
+      <Section title="Education" index={2} className="border-t border-border">
         <div>
           {profile.education.map((entry) => (
             <EducationItem key={entry.institution} entry={entry} />
@@ -58,11 +58,11 @@ export default function CvPage() {
         </div>
       </Section>
 
-      <Section title="Skills" className="border-t border-border">
+      <Section title="Skills" index={3} className="border-t border-border">
         <SkillsSection groups={profile.skills} />
       </Section>
 
-      <Section title="Certifications" className="border-t border-border">
+      <Section title="Certifications" index={4} className="border-t border-border">
         <ul className="space-y-2 text-sm">
           {profile.certifications.map((cert) => (
             <li
@@ -78,7 +78,7 @@ export default function CvPage() {
         </ul>
       </Section>
 
-      <Section title="Awards" className="border-t border-border">
+      <Section title="Awards" index={5} className="border-t border-border">
         <ul>
           {profile.awards.map((award) => (
             <AwardItem key={award.name} entry={award} />
@@ -86,7 +86,7 @@ export default function CvPage() {
         </ul>
       </Section>
 
-      <Section title="Volunteering" className="border-t border-border">
+      <Section title="Volunteering" index={6} className="border-t border-border">
         <div>
           {profile.volunteering.map((entry) => (
             <VolunteeringItem key={`${entry.organization}-${entry.year}`} entry={entry} />
