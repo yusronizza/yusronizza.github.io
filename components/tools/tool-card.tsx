@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import type { Tool } from "@/lib/data/tools";
+import type { Tool } from "@/lib/domain/types";
 
 export function ToolCard({ tool }: { tool: Tool }) {
   return (

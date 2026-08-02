@@ -1,14 +1,20 @@
-import { apiPost } from "./client";
+import type { ContactPayload } from "@/lib/domain/types";
 
-export type ContactPayload = {
-  name: string;
-  email: string;
-  subject: string;
+type ContactResult = {
+  queued: boolean;
   message: string;
 };
 
-export type ContactResult = { queued: boolean; message: string };
-
-export const contactApi = {
-  send: (payload: ContactPayload) => apiPost<ContactResult, ContactPayload>("/contact", payload),
-};
+export async function sendContact(payload: ContactPayload): Promise<ContactResult> {
+  const res = await fetch("/api/v1/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    const err = json?.error ?? {};
+    throw new Error(err.message ?? "Failed to send message.");
+  }
+  return json.data;
+}

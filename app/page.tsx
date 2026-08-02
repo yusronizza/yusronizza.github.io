@@ -6,9 +6,10 @@ import { RecentPosts } from "@/components/home/recent-posts";
 import { Connect } from "@/components/home/connect";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
-import { personSchema } from "@/lib/seo/schema";
-import { profile } from "@/lib/data/profile";
+import { websiteSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@/lib/config/site";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createMetadata({
   title: siteConfig.defaultTitle,
@@ -20,7 +21,7 @@ export const metadata: Metadata = createMetadata({
 export default function HomePage() {
   return (
     <>
-      <JsonLd data={personSchema(profile)} />
+      <JsonLd data={websiteSchema()} />
       <Hero />
       <Interests />
       <FeaturedProjects />

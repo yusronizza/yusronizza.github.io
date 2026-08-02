@@ -12,15 +12,26 @@ import { LinkButton } from "@/components/ui/button";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema, personSchema } from "@/lib/seo/schema";
-import { profile } from "@/lib/data/profile";
+import { getProfile } from "@/lib/api/profile";
 
-export const metadata: Metadata = createMetadata({
-  title: "CV",
-  description: `Curriculum vitae for ${profile.name}: experience, education, skills, certifications, awards and volunteering.`,
-  path: "/cv",
-});
+export const dynamic = "force-dynamic";
 
-export default function CvPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const profile = await getProfile();
+    return createMetadata({
+      title: "CV",
+      description: `Curriculum vitae for ${profile.name}: experience, education, skills, certifications, awards and volunteering.`,
+      path: "/cv",
+    });
+  } catch {
+    return createMetadata({ title: "CV", description: "Curriculum vitae.", path: "/cv" });
+  }
+}
+
+export default async function CvPage() {
+  const profile = await getProfile();
+
   return (
     <>
       <JsonLd data={personSchema(profile)} />

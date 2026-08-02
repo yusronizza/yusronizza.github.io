@@ -5,20 +5,28 @@ import { PomodoroTimer } from "@/components/tools/pomodoro/pomodoro-timer";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema, softwareApplicationSchema } from "@/lib/seo/schema";
-import { getToolBySlug } from "@/lib/data/tools";
+import { getTool } from "@/lib/api/tools";
 
-const tool = getToolBySlug("pomodoro");
+export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = tool
-  ? createMetadata({
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const tool = await getTool("pomodoro");
+    return createMetadata({
       title: tool.title,
       description: tool.description,
       path: "/tools/pomodoro",
-    })
-  : {};
+    });
+  } catch {
+    return {};
+  }
+}
 
-export default function PomodoroPage() {
-  if (!tool) {
+export default async function PomodoroPage() {
+  let tool;
+  try {
+    tool = await getTool("pomodoro");
+  } catch {
     notFound();
   }
 

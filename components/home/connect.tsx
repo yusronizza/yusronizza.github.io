@@ -3,7 +3,7 @@ import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Section } from "@/components/ui/section";
 import { siteConfig } from "@/lib/config/site";
-import { profile } from "@/lib/data/profile";
+import { getProfile } from "@/lib/api/profile";
 import { ContactForm } from "@/components/home/contact-form";
 
 const secondaryLinks = [
@@ -12,7 +12,9 @@ const secondaryLinks = [
   { label: "Download CV", href: "/files/Yusron_Izza_Faradisa_CV.pdf" },
 ];
 
-export function Connect() {
+export async function Connect() {
+  const profile = await getProfile();
+
   return (
     <Section title="Connect with me" index={4} className="border-t border-border">
       <Card>

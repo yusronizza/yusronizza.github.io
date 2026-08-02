@@ -1,7 +1,9 @@
 import { LinkButton } from "@/components/ui/button";
-import { profile } from "@/lib/data/profile";
+import { getProfile } from "@/lib/api/profile";
 
-export function Hero() {
+export async function Hero() {
+  const profile = await getProfile();
+
   return (
     <section className="flex flex-col gap-6 py-16 sm:py-24">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">

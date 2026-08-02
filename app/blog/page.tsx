@@ -4,7 +4,9 @@ import { PostCard } from "@/components/blog/post-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema } from "@/lib/seo/schema";
-import { getAllPosts } from "@/lib/data/posts";
+import { getPosts } from "@/lib/api/posts";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createMetadata({
   title: "Blog",
@@ -12,8 +14,8 @@ export const metadata: Metadata = createMetadata({
   path: "/blog",
 });
 
-export default function BlogPage() {
-  const posts = getAllPosts();
+export default async function BlogPage() {
+  const { posts } = await getPosts({ limit: 100 });
 
   return (
     <>

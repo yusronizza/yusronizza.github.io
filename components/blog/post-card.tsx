@@ -2,9 +2,9 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils/format";
-import type { Post } from "@/lib/data/posts";
+import type { PostSummary } from "@/lib/domain/types";
 
-export function PostCard({ post }: { post: Post }) {
+export function PostCard({ post }: { post: PostSummary }) {
   return (
     <Link href={`/blog/${post.slug}`} className="block">
       <Card className="h-full hover:shadow-md">

@@ -1,8 +1,6 @@
 import { siteConfig } from "@/lib/config/site";
-import type { Post } from "@/lib/data/posts";
-import type { Project } from "@/lib/data/projects";
+import type { PostSummary, ProjectSummary, Tool } from "@/lib/domain/types";
 import type { Profile } from "@/lib/data/profile";
-import type { Tool } from "@/lib/data/tools";
 
 export function personSchema(profile: Profile) {
   return {
@@ -30,7 +28,7 @@ export function websiteSchema() {
   };
 }
 
-export function blogPostingSchema(post: Post) {
+export function blogPostingSchema(post: PostSummary) {
   return {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -46,7 +44,7 @@ export function blogPostingSchema(post: Post) {
   };
 }
 
-export function projectSchema(project: Project) {
+export function projectSchema(project: ProjectSummary) {
   return {
     "@context": "https://schema.org",
     "@type": "CreativeWork",

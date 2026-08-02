@@ -5,15 +5,26 @@ import { Badge } from "@/components/ui/badge";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema } from "@/lib/seo/schema";
-import { profile } from "@/lib/data/profile";
+import { getProfile } from "@/lib/api/profile";
 
-export const metadata: Metadata = createMetadata({
-  title: "About",
-  description: `Learn more about ${profile.name}, ${profile.title} based in ${profile.location}.`,
-  path: "/about",
-});
+export const dynamic = "force-dynamic";
 
-export default function AboutPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const profile = await getProfile();
+    return createMetadata({
+      title: "About",
+      description: `Learn more about ${profile.name}, ${profile.title} based in ${profile.location}.`,
+      path: "/about",
+    });
+  } catch {
+    return createMetadata({ title: "About", description: "About me.", path: "/about" });
+  }
+}
+
+export default async function AboutPage() {
+  const profile = await getProfile();
+
   return (
     <>
       <JsonLd data={breadcrumbSchema([{ name: "About", path: "/about" }])} />

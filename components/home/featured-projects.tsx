@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Section } from "@/components/ui/section";
 import { ProjectCard } from "@/components/projects/project-card";
-import { getFeaturedProjects } from "@/lib/data/projects";
+import { getProjects } from "@/lib/api/projects";
 
-export function FeaturedProjects() {
-  const featured = getFeaturedProjects();
+export async function FeaturedProjects() {
+  const featured = await getProjects({ featured: true });
 
   return (
     <Section title="Featured projects" index={2} className="border-t border-border">

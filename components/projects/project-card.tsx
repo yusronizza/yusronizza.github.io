@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { Project } from "@/lib/data/projects";
+import type { ProjectSummary } from "@/lib/domain/types";
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project }: { project: ProjectSummary }) {
   return (
     <Link href={`/projects/${project.slug}`} className="block">
       <Card className="h-full hover:shadow-md">

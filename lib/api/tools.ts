@@ -1,7 +1,12 @@
-import type { Tool } from "@/lib/data/tools";
-import { apiGet, apiGetList } from "./client";
+import { apiFetch } from "./client";
+import type { Tool } from "@/lib/domain/types";
 
-export const toolsApi = {
-  list: () => apiGetList<Tool>("/tools"),
-  get: (slug: string) => apiGet<Tool>(`/tools/${slug}`),
-};
+export async function getTools(): Promise<Tool[]> {
+  const res = await apiFetch<{ data: Tool[] }>("/tools");
+  return res.data;
+}
+
+export async function getTool(slug: string): Promise<Tool> {
+  const res = await apiFetch<{ data: Tool }>(`/tools/${slug}`);
+  return res.data;
+}

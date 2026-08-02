@@ -4,7 +4,9 @@ import { ToolCard } from "@/components/tools/tool-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema } from "@/lib/seo/schema";
-import { getAllTools } from "@/lib/data/tools";
+import { getTools } from "@/lib/api/tools";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createMetadata({
   title: "Tools",
@@ -12,8 +14,8 @@ export const metadata: Metadata = createMetadata({
   path: "/tools",
 });
 
-export default function ToolsPage() {
-  const tools = getAllTools();
+export default async function ToolsPage() {
+  const tools = await getTools();
 
   return (
     <>

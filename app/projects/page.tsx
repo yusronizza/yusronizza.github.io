@@ -4,7 +4,9 @@ import { ProjectCard } from "@/components/projects/project-card";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema } from "@/lib/seo/schema";
-import { getAllProjects } from "@/lib/data/projects";
+import { getProjects } from "@/lib/api/projects";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createMetadata({
   title: "Projects",
@@ -12,8 +14,8 @@ export const metadata: Metadata = createMetadata({
   path: "/projects",
 });
 
-export default function ProjectsPage() {
-  const projects = getAllProjects();
+export default async function ProjectsPage() {
+  const projects = await getProjects();
 
   return (
     <>

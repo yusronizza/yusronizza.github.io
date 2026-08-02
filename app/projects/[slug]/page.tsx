@@ -7,35 +7,36 @@ import { LinkButton } from "@/components/ui/button";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema, projectSchema } from "@/lib/seo/schema";
-import { getAllProjectSlugs, getProjectBySlug } from "@/lib/data/projects";
+import { getProject } from "@/lib/api/projects";
+
+export const dynamic = "force-dynamic";
 
 type ProjectPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return getAllProjectSlugs().map((slug) => ({ slug }));
-}
-
 export async function generateMetadata({
   params,
 }: ProjectPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
-  if (!project) return {};
-
-  return createMetadata({
-    title: project.title,
-    description: project.description,
-    path: `/projects/${project.slug}`,
-  });
+  try {
+    const project = await getProject(slug);
+    return createMetadata({
+      title: project.title,
+      description: project.description,
+      path: `/projects/${project.slug}`,
+    });
+  } catch {
+    return {};
+  }
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
-
-  if (!project) {
+  let project;
+  try {
+    project = await getProject(slug);
+  } catch {
     notFound();
   }
 

@@ -7,39 +7,40 @@ import { MarkdownContent } from "@/components/blog/markdown-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { blogPostingSchema, breadcrumbSchema } from "@/lib/seo/schema";
-import { getAllPostSlugs, getPostBySlug } from "@/lib/data/posts";
+import { getPost } from "@/lib/api/posts";
 import { formatDate } from "@/lib/utils/format";
+
+export const dynamic = "force-dynamic";
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return getAllPostSlugs().map((slug) => ({ slug }));
-}
-
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
-  if (!post) return {};
-
-  return createMetadata({
-    title: post.title,
-    description: post.excerpt,
-    path: `/blog/${post.slug}`,
-    type: "article",
-    publishedTime: post.publishedAt,
-    tags: post.tags,
-  });
+  try {
+    const post = await getPost(slug);
+    return createMetadata({
+      title: post.title,
+      description: post.excerpt,
+      path: `/blog/${post.slug}`,
+      type: "article",
+      publishedTime: post.publishedAt,
+      tags: post.tags,
+    });
+  } catch {
+    return {};
+  }
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
-
-  if (!post) {
+  let post;
+  try {
+    post = await getPost(slug);
+  } catch {
     notFound();
   }
 

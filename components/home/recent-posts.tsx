@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { Section } from "@/components/ui/section";
 import { PostCard } from "@/components/blog/post-card";
-import { getAllPosts } from "@/lib/data/posts";
+import { getPosts } from "@/lib/api/posts";
 
-export function RecentPosts() {
-  const recent = getAllPosts().slice(0, 3);
+export async function RecentPosts() {
+  const { posts } = await getPosts({ limit: 3 });
 
   return (
     <Section title="Recent writing" index={3} className="border-t border-border">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {recent.map((post) => (
+        {posts.map((post) => (
           <PostCard key={post.slug} post={post} />
         ))}
       </div>

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { contactApi } from "@/lib/api/contact";
-import { ApiError } from "@/lib/api/client";
+import { sendContact } from "@/lib/api/contact";
 import { Button } from "@/components/ui/button";
 
 type FieldErrors = Partial<Record<"name" | "email" | "subject" | "message", string>>;
@@ -22,7 +21,7 @@ export function ContactForm() {
     const data = new FormData(form);
 
     try {
-      await contactApi.send({
+      await sendContact({
         name: String(data.get("name") ?? ""),
         email: String(data.get("email") ?? ""),
         subject: String(data.get("subject") ?? ""),
@@ -31,15 +30,7 @@ export function ContactForm() {
       setStatus("success");
       form.reset();
     } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.field) {
-          setFieldErrors({ [err.field]: err.message } as FieldErrors);
-        } else {
-          setErrorMessage(err.message);
-        }
-      } else {
-        setErrorMessage("Something went wrong. Please try again.");
-      }
+      setErrorMessage(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setStatus("error");
     }
   }
