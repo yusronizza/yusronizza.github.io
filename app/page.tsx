@@ -4,6 +4,7 @@ import { Interests } from "@/components/home/interests";
 import { FeaturedProjects } from "@/components/home/featured-projects";
 import { RecentPosts } from "@/components/home/recent-posts";
 import { Connect } from "@/components/home/connect";
+import { ServerStatus } from "@/components/home/server-status";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { websiteSchema } from "@/lib/seo/schema";
@@ -27,6 +28,7 @@ export default function HomePage() {
       <FeaturedProjects />
       <RecentPosts />
       <Connect />
+      <ServerStatus />
     </>
   );
 }
