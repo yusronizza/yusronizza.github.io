@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Section } from "@/components/ui/section";
 import { siteConfig } from "@/lib/config/site";
 import { profile } from "@/lib/data/profile";
+import { ContactForm } from "@/components/home/contact-form";
 
 const secondaryLinks = [
   { label: "GitHub", href: siteConfig.social.github },
@@ -47,6 +48,10 @@ export function Connect() {
           </div>
         </div>
       </Card>
+      <div className="mt-8">
+        <h3 className="mb-4 text-lg font-semibold">Send a message</h3>
+        <ContactForm />
+      </div>
     </Section>
   );
 }
