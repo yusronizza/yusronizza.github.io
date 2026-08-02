@@ -8,7 +8,7 @@ export function ExperienceItem({ entry }: { entry: ExperienceEntry }) {
         <h3 className="font-semibold tracking-tight">
           {entry.role} &middot; {entry.organization}
         </h3>
-        <p className="shrink-0 font-mono text-xs text-muted">
+        <p className="shrink-0 text-xs text-muted">
           {formatMonthYear(entry.startDate)} &ndash; {formatMonthYear(entry.endDate)}
         </p>
       </div>

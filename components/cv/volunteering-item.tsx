@@ -7,7 +7,7 @@ export function VolunteeringItem({ entry }: { entry: VolunteeringEntry }) {
         <h3 className="font-semibold tracking-tight">
           {entry.role} &middot; {entry.organization}
         </h3>
-        <p className="shrink-0 font-mono text-xs text-muted">{entry.year}</p>
+        <p className="shrink-0 text-xs text-muted">{entry.year}</p>
       </div>
       <p className="mt-1 text-sm text-muted">{entry.location}</p>
       <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-muted">

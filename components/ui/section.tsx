@@ -18,7 +18,7 @@ export function Section({
       {title && (
         <div className="mb-8 flex items-baseline gap-3">
           {typeof index === "number" && (
-            <span className="font-mono text-sm text-accent">{String(index).padStart(2, "0")}</span>
+            <span className="text-sm font-semibold text-accent/50">{String(index).padStart(2, "0")}.</span>
           )}
           <div>
             <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>

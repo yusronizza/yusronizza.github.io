@@ -28,18 +28,13 @@ export function Interests() {
   return (
     <Section title="Interests" index={1} className="border-t border-border">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {interests.map((interest, i) => (
+        {interests.map((interest) => (
           <div
             key={interest.title}
-            className="border border-border bg-surface p-6 transition-colors hover:border-accent"
+            className="rounded-2xl border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md"
           >
-            <div className="flex items-center justify-between">
-              <interest.icon className="h-6 w-6 text-accent" aria-hidden="true" />
-              <span className="font-mono text-xs text-muted">
-                [{String(i + 1).padStart(2, "0")}]
-              </span>
-            </div>
-            <h3 className="mt-4 text-base font-semibold tracking-tight">{interest.title}</h3>
+            <interest.icon className="h-6 w-6 text-accent" aria-hidden="true" />
+            <h3 className="mt-4 text-base font-semibold">{interest.title}</h3>
             <p className="mt-2 text-sm text-muted">{interest.description}</p>
           </div>
         ))}

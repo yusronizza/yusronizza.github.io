@@ -72,7 +72,7 @@ export default function CvPage() {
               <span>
                 {cert.name} &middot; <span className="text-muted">{cert.issuer}</span>
               </span>
-              <span className="font-mono text-xs text-muted">{cert.date}</span>
+              <span className="text-xs text-muted">{cert.date}</span>
             </li>
           ))}
         </ul>

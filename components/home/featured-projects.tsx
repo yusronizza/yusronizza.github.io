@@ -15,9 +15,9 @@ export function FeaturedProjects() {
       </div>
       <Link
         href="/projects"
-        className="mt-6 inline-block font-mono text-sm text-accent hover:underline"
+        className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
       >
-        [view all projects &rarr;]
+        View all projects &rarr;
       </Link>
     </Section>
   );

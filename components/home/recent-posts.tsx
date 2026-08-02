@@ -15,9 +15,9 @@ export function RecentPosts() {
       </div>
       <Link
         href="/blog"
-        className="mt-6 inline-block font-mono text-sm text-accent hover:underline"
+        className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
       >
-        [read all posts &rarr;]
+        Read all posts &rarr;
       </Link>
     </Section>
   );

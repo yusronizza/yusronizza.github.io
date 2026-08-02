@@ -61,7 +61,7 @@ export function PomodoroTimer() {
 
   return (
     <div className="flex flex-col items-center gap-8 py-8">
-      <p className="font-mono text-sm uppercase tracking-widest text-accent">
+      <p className="text-xs font-semibold uppercase tracking-widest text-accent">
         {PHASE_LABELS[phase]}
       </p>
 
@@ -91,10 +91,10 @@ export function PomodoroTimer() {
       </p>
 
       <details className="w-full max-w-md">
-        <summary className="cursor-pointer text-center font-mono text-sm text-muted hover:text-accent">
-          [settings]
+        <summary className="cursor-pointer text-center text-sm text-muted hover:text-accent">
+          Settings
         </summary>
-        <div className="mt-6 border border-border bg-surface p-6">
+        <div className="mt-6 rounded-2xl border border-border bg-surface p-6">
           <SettingsPanel
             settings={settings}
             notificationPermission={notificationPermission}

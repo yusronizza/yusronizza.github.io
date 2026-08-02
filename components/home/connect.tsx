@@ -14,9 +14,9 @@ const secondaryLinks = [
 export function Connect() {
   return (
     <Section title="Connect with me" index={4} className="border-t border-border">
-      <Card label="~/contact">
+      <Card>
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-          <div className="relative h-32 w-32 shrink-0 overflow-hidden border border-border">
+          <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-border">
             <Image
               src="/images/profile.jpeg"
               alt={profile.name}
@@ -38,9 +38,9 @@ export function Connect() {
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-mono text-sm text-accent hover:underline"
+                  className="text-sm font-medium text-accent hover:underline"
                 >
-                  [{link.label}]
+                  {link.label}
                 </a>
               ))}
             </div>

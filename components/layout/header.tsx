@@ -20,8 +20,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur print:hidden">
       <Container className="flex h-16 items-center justify-between">
-        <Link href="/" className="font-mono text-sm font-semibold tracking-tight">
-          <span className="text-accent">~/</span>
+        <Link href="/" className="text-base font-semibold tracking-tight">
           {siteConfig.shortName}
         </Link>
 
@@ -32,17 +31,13 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-2.5 py-1.5 font-mono text-sm transition-colors ${
-                  active ? "text-accent" : "text-muted hover:text-foreground"
+                className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-accent/10 text-accent"
+                    : "text-muted hover:bg-surface hover:text-foreground"
                 }`}
               >
-                <span aria-hidden="true" className={active ? "text-accent" : "text-transparent"}>
-                  [
-                </span>
                 {item.label}
-                <span aria-hidden="true" className={active ? "text-accent" : "text-transparent"}>
-                  ]
-                </span>
               </Link>
             );
           })}
@@ -59,7 +54,7 @@ export function Header() {
             aria-label="Toggle navigation menu"
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((open) => !open)}
-            className="inline-flex h-9 w-9 items-center justify-center border border-border text-foreground"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-4 w-4">
               {isMenuOpen ? (
@@ -82,15 +77,11 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`px-3 py-2 font-mono text-sm ${active ? "text-accent" : "text-muted"}`}
+                  className={`rounded-lg px-3 py-2 text-sm font-medium ${
+                    active ? "text-accent" : "text-muted"
+                  }`}
                 >
-                  <span aria-hidden="true" className={active ? "text-accent" : "text-transparent"}>
-                    [
-                  </span>
                   {item.label}
-                  <span aria-hidden="true" className={active ? "text-accent" : "text-transparent"}>
-                    ]
-                  </span>
                 </Link>
               );
             })}

@@ -7,12 +7,12 @@ import type { Post } from "@/lib/data/posts";
 export function PostCard({ post }: { post: Post }) {
   return (
     <Link href={`/blog/${post.slug}`} className="block">
-      <Card label={`~/blog/${post.slug}`} className="h-full hover:border-accent">
+      <Card className="h-full hover:shadow-md">
         <div className="flex items-center justify-between gap-4">
-          <time dateTime={post.publishedAt} className="font-mono text-xs text-muted">
+          <time dateTime={post.publishedAt} className="text-xs text-muted">
             {formatDate(post.publishedAt)}
           </time>
-          <span className="shrink-0 font-mono text-xs text-muted">
+          <span className="shrink-0 text-xs text-muted">
             {post.readingTimeMinutes} min read
           </span>
         </div>

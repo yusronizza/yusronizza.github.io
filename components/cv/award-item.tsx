@@ -9,7 +9,7 @@ export function AwardItem({ entry }: { entry: AwardEntry }) {
         </p>
         {entry.description && <p className="mt-1 text-sm text-muted">{entry.description}</p>}
       </div>
-      <span className="shrink-0 font-mono text-xs text-muted">{entry.year}</span>
+      <span className="shrink-0 text-xs text-muted">{entry.year}</span>
     </li>
   );
 }
