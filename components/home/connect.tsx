@@ -13,7 +13,13 @@ const secondaryLinks = [
 ];
 
 export async function Connect() {
-  const profile = await getProfile();
+  let name: string = siteConfig.author.name;
+  try {
+    const profile = await getProfile();
+    name = profile.name;
+  } catch {
+    // fall through with static name from siteConfig
+  }
 
   return (
     <Section title="Connect with me" index={4} className="border-t border-border">
@@ -22,7 +28,7 @@ export async function Connect() {
           <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-border">
             <Image
               src="/images/profile.jpeg"
-              alt={profile.name}
+              alt={name}
               fill
               sizes="128px"
               className="object-cover"

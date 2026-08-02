@@ -4,7 +4,17 @@ import { PostCard } from "@/components/blog/post-card";
 import { getPosts } from "@/lib/api/posts";
 
 export async function RecentPosts() {
-  const { posts } = await getPosts({ limit: 3 });
+  let posts;
+  try {
+    const result = await getPosts({ limit: 3 });
+    posts = result.posts;
+  } catch {
+    return (
+      <Section title="Recent writing" index={3} className="border-t border-border">
+        <p className="text-sm text-muted">Posts couldn&apos;t be loaded right now.</p>
+      </Section>
+    );
+  }
 
   return (
     <Section title="Recent writing" index={3} className="border-t border-border">

@@ -4,7 +4,16 @@ import { ProjectCard } from "@/components/projects/project-card";
 import { getProjects } from "@/lib/api/projects";
 
 export async function FeaturedProjects() {
-  const featured = await getProjects({ featured: true });
+  let featured;
+  try {
+    featured = await getProjects({ featured: true });
+  } catch {
+    return (
+      <Section title="Featured projects" index={2} className="border-t border-border">
+        <p className="text-sm text-muted">Projects couldn&apos;t be loaded right now.</p>
+      </Section>
+    );
+  }
 
   return (
     <Section title="Featured projects" index={2} className="border-t border-border">
