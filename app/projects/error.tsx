@@ -1,8 +1,8 @@
 "use client";
 
-import { RouteError } from "@/components/ui/route-error";
+import { RouteError, type RouteErrorPageProps } from "@/components/ui/route-error";
 
-export default function ProjectsError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function ProjectsError({ reset }: RouteErrorPageProps) {
   return (
     <RouteError
       heading="Couldn't load projects"

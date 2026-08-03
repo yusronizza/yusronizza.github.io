@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema, projectSchema } from "@/lib/seo/schema";
 import { getProject } from "@/lib/api/projects";
+import { ApiError } from "@/lib/api/client";
 
 export const dynamic = "force-dynamic";
 
@@ -36,8 +37,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   let project;
   try {
     project = await getProject(slug);
-  } catch {
-    notFound();
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) notFound();
+    throw err;
   }
 
   const hasLinks = Boolean(project.links.live || project.links.repo);

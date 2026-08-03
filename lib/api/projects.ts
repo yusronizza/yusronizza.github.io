@@ -1,4 +1,5 @@
-import { apiFetch } from "./client";
+import { cache } from "react";
+import { apiFetch, buildUrl } from "./client";
 import type { Project, ProjectSummary } from "@/lib/domain/types";
 
 type RawProjectSummary = {
@@ -48,14 +49,11 @@ export async function getProjects(params?: ProjectsParams): Promise<ProjectSumma
   if (params?.featured) qs.set("featured", "true");
   if (params?.tag) qs.set("tag", params.tag);
 
-  const query = qs.toString();
-  const res = await apiFetch<{ data: RawProjectSummary[] }>(
-    `/projects${query ? `?${query}` : ""}`
-  );
+  const res = await apiFetch<{ data: RawProjectSummary[] }>(buildUrl("/projects", qs));
   return res.data.map(toProjectSummary);
 }
 
-export async function getProject(slug: string): Promise<Project> {
+export const getProject = cache(async (slug: string): Promise<Project> => {
   const res = await apiFetch<{ data: RawProject }>(`/projects/${slug}`);
   return toProject(res.data);
-}
+});

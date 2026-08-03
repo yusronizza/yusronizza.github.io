@@ -1,4 +1,5 @@
-import { apiFetch } from "./client";
+import { cache } from "react";
+import { apiFetch, buildUrl } from "./client";
 import type { Post, PostList, PostSummary, TagCount } from "@/lib/domain/types";
 
 type RawPostSummary = {
@@ -52,10 +53,7 @@ export async function getPosts(params?: PostsParams): Promise<PostList> {
   if (params?.cursor) qs.set("cursor", params.cursor);
   if (params?.tag) qs.set("tag", params.tag);
 
-  const query = qs.toString();
-  const res = await apiFetch<{ data: RawPostSummary[]; meta: RawMeta }>(
-    `/posts${query ? `?${query}` : ""}`
-  );
+  const res = await apiFetch<{ data: RawPostSummary[]; meta: RawMeta }>(buildUrl("/posts", qs));
 
   return {
     posts: res.data.map(toPostSummary),
@@ -68,10 +66,10 @@ export async function getPosts(params?: PostsParams): Promise<PostList> {
   };
 }
 
-export async function getPost(slug: string): Promise<Post> {
+export const getPost = cache(async (slug: string): Promise<Post> => {
   const res = await apiFetch<{ data: RawPost }>(`/posts/${slug}`);
   return toPost(res.data);
-}
+});
 
 export async function getTags(): Promise<TagCount[]> {
   const res = await apiFetch<{ data: TagCount[] }>("/posts/tags");

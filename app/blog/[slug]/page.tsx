@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { blogPostingSchema, breadcrumbSchema } from "@/lib/seo/schema";
 import { getPost } from "@/lib/api/posts";
+import { ApiError } from "@/lib/api/client";
 import { formatDate } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -40,8 +41,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   let post;
   try {
     post = await getPost(slug);
-  } catch {
-    notFound();
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) notFound();
+    throw err;
   }
 
   return (

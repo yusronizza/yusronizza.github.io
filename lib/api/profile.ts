@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { apiFetch } from "./client";
 import {
   profile as localProfile,
@@ -61,7 +62,7 @@ function toProfile(raw: RawProfile): Profile {
   };
 }
 
-export async function getProfile(): Promise<Profile> {
+export const getProfile = cache(async (): Promise<Profile> => {
   const res = await apiFetch<{ data: RawProfile }>("/profile");
   return toProfile(res.data);
-}
+});

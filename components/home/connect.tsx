@@ -3,7 +3,6 @@ import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Section } from "@/components/ui/section";
 import { siteConfig } from "@/lib/config/site";
-import { getProfile } from "@/lib/api/profile";
 
 const secondaryLinks = [
   { label: "GitHub", href: siteConfig.social.github },
@@ -11,15 +10,7 @@ const secondaryLinks = [
   { label: "Download CV", href: "/files/Yusron_Izza_Faradisa_CV.pdf" },
 ];
 
-export async function Connect() {
-  let name: string = siteConfig.author.name;
-  try {
-    const profile = await getProfile();
-    name = profile.name;
-  } catch {
-    // fall through with static name from siteConfig
-  }
-
+export function Connect() {
   return (
     <Section title="Connect with me" index={4} className="border-t border-border">
       <Card>
@@ -27,7 +18,7 @@ export async function Connect() {
           <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-border">
             <Image
               src="/images/profile.jpeg"
-              alt={name}
+              alt={siteConfig.author.name}
               fill
               sizes="128px"
               className="object-cover"

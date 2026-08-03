@@ -46,17 +46,25 @@ function StatusDot({ status }: { status: Status }) {
   );
 }
 
+function statusTextClass(s: Status): string {
+  if (s === "connected") return "text-green-600 dark:text-green-400";
+  if (s === "offline") return "text-red-600 dark:text-red-400";
+  return "text-muted";
+}
+
 function formatTime(date: Date) {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
 export function ServerStatus() {
   const [result, setResult] = useState<CheckResult | null>(null);
+  const [isPending, setIsPending] = useState(true);
 
   const run = useCallback(async () => {
-    setResult(null);
+    setIsPending(true);
     const r = await checkServer();
     setResult(r);
+    setIsPending(false);
   }, []);
 
   useEffect(() => {
@@ -65,7 +73,7 @@ export function ServerStatus() {
     return () => clearInterval(id);
   }, [run]);
 
-  const status: Status = result?.status ?? "checking";
+  const status: Status = isPending ? "checking" : (result?.status ?? "offline");
 
   return (
     <section className="border-t border-border py-10 sm:py-12">
@@ -76,26 +84,18 @@ export function ServerStatus() {
           </p>
           <div className="mt-3 flex items-center gap-2.5">
             <StatusDot status={status} />
-            <span
-              className={`text-sm font-medium ${
-                status === "checking"
-                  ? "text-muted"
-                  : status === "connected"
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-              }`}
-            >
+            <span className={`text-sm font-medium ${statusTextClass(status)}`}>
               {status === "checking"
                 ? "Checking…"
                 : status === "connected"
                 ? "API server reachable"
                 : "API server unreachable"}
             </span>
-            {result?.latencyMs !== null && result?.status === "connected" && (
+            {result !== null && result.latencyMs !== null && result.status === "connected" && (
               <span className="text-xs text-muted">{result.latencyMs} ms</span>
             )}
           </div>
-          {result && (
+          {result !== null && (
             <p className="mt-1.5 text-xs text-muted">
               Last checked at {formatTime(result.checkedAt)}
             </p>
@@ -104,7 +104,7 @@ export function ServerStatus() {
 
         <button
           onClick={run}
-          disabled={status === "checking"}
+          disabled={isPending}
           className="shrink-0 self-start rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
         >
           Check again
@@ -118,23 +118,17 @@ export function ServerStatus() {
         </div>
         <div className="mt-2 flex items-center gap-3">
           <span className="w-28 shrink-0 text-xs text-muted">Status</span>
-          <span
-            className={`text-xs font-medium ${
-              status === "checking"
-                ? "text-muted"
-                : status === "connected"
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
-            }`}
-          >
+          <span className={`text-xs font-medium ${statusTextClass(status)}`}>
             {status === "checking" ? "—" : status === "connected" ? "200 OK" : "Unreachable"}
           </span>
         </div>
-        {result?.latencyMs !== null && (
+        {result !== null && (
           <div className="mt-2 flex items-center gap-3">
             <span className="w-28 shrink-0 text-xs text-muted">Latency</span>
             <span className="text-xs text-foreground">
-              {result?.status === "connected" ? `${result.latencyMs} ms` : "—"}
+              {result.status === "connected" && result.latencyMs !== null
+                ? `${result.latencyMs} ms`
+                : "—"}
             </span>
           </div>
         )}
