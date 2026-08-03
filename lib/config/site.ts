@@ -14,7 +14,7 @@ export const siteConfig = {
   description:
     "Portfolio of Yusron Izza Faradisa, an embedded systems and digital systems engineer.",
   locale: "en_US",
-  themeColor: "#090907",
+  themeColor: "#0d0d0d",
   author: {
     name: "Yusron Izza Faradisa",
     email: "yusronizzafaradisa@gmail.com",
