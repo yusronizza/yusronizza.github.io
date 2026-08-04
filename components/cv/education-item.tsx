@@ -1,4 +1,4 @@
-import type { EducationEntry } from "@/lib/data/profile";
+import type { EducationEntry } from "@/lib/domain/types";
 
 export function EducationItem({ entry }: { entry: EducationEntry }) {
   return (

@@ -7,8 +7,10 @@ const socialLinks = [
   { label: "Email", href: siteConfig.social.email },
 ];
 
+const YEAR = new Date().getFullYear();
+
 export function Footer() {
-  const year = new Date().getFullYear();
+  const year = YEAR;
 
   return (
     <footer className="border-t border-border print:hidden">

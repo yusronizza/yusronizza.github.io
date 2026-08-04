@@ -1,34 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useServerStatus, type ServerOnlineStatus } from "@/lib/hooks/use-server-status";
+import { formatTime } from "@/lib/utils/format";
 
-type Status = "checking" | "connected" | "offline";
-
-type CheckResult = {
-  status: Status;
-  latencyMs: number | null;
-  checkedAt: Date;
-};
-
-async function checkServer(): Promise<CheckResult> {
-  const start = performance.now();
-  try {
-    const res = await fetch("/api/v1/profile", {
-      signal: AbortSignal.timeout(6000),
-      cache: "no-store",
-    });
-    const latencyMs = Math.round(performance.now() - start);
-    return {
-      status: res.ok ? "connected" : "offline",
-      latencyMs,
-      checkedAt: new Date(),
-    };
-  } catch {
-    return { status: "offline", latencyMs: null, checkedAt: new Date() };
-  }
-}
-
-function StatusDot({ status }: { status: Status }) {
+function StatusDot({ status }: { status: ServerOnlineStatus }) {
   if (status === "checking") {
     return (
       <span className="relative flex h-2.5 w-2.5">
@@ -40,40 +15,20 @@ function StatusDot({ status }: { status: Status }) {
   return (
     <span
       className={`inline-flex h-2.5 w-2.5 rounded-full ${
-        status === "connected" ? "bg-green-500" : "bg-red-500"
+        status === "online" ? "bg-green-500" : "bg-red-500"
       }`}
     />
   );
 }
 
-function statusTextClass(s: Status): string {
-  if (s === "connected") return "text-green-600 dark:text-green-400";
+function statusTextClass(s: ServerOnlineStatus): string {
+  if (s === "online") return "text-green-600 dark:text-green-400";
   if (s === "offline") return "text-red-600 dark:text-red-400";
   return "text-muted";
 }
 
-function formatTime(date: Date) {
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-}
-
 export function ServerStatus() {
-  const [result, setResult] = useState<CheckResult | null>(null);
-  const [isPending, setIsPending] = useState(true);
-
-  const run = useCallback(async () => {
-    setIsPending(true);
-    const r = await checkServer();
-    setResult(r);
-    setIsPending(false);
-  }, []);
-
-  useEffect(() => {
-    run();
-    const id = setInterval(run, 30_000);
-    return () => clearInterval(id);
-  }, [run]);
-
-  const status: Status = isPending ? "checking" : (result?.status ?? "offline");
+  const { status, latencyMs, checkedAt, recheck } = useServerStatus();
 
   return (
     <section className="border-t border-border py-10 sm:py-12">
@@ -87,24 +42,25 @@ export function ServerStatus() {
             <span className={`text-sm font-medium ${statusTextClass(status)}`}>
               {status === "checking"
                 ? "Checking…"
-                : status === "connected"
+                : status === "online"
                 ? "API server reachable"
                 : "API server unreachable"}
             </span>
-            {result !== null && result.latencyMs !== null && result.status === "connected" && (
-              <span className="text-xs text-muted">{result.latencyMs} ms</span>
+            {status === "online" && latencyMs !== null && (
+              <span className="text-xs text-muted">{latencyMs} ms</span>
             )}
           </div>
-          {result !== null && (
+          {checkedAt !== null && (
             <p className="mt-1.5 text-xs text-muted">
-              Last checked at {formatTime(result.checkedAt)}
+              Last checked at {formatTime(checkedAt)}
             </p>
           )}
         </div>
 
         <button
-          onClick={run}
-          disabled={isPending}
+          type="button"
+          onClick={recheck}
+          disabled={status === "checking"}
           className="shrink-0 self-start rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
         >
           Check again
@@ -119,16 +75,14 @@ export function ServerStatus() {
         <div className="mt-2 flex items-center gap-3">
           <span className="w-28 shrink-0 text-xs text-muted">Status</span>
           <span className={`text-xs font-medium ${statusTextClass(status)}`}>
-            {status === "checking" ? "—" : status === "connected" ? "200 OK" : "Unreachable"}
+            {status === "checking" ? "—" : status === "online" ? "200 OK" : "Unreachable"}
           </span>
         </div>
-        {result !== null && (
+        {checkedAt !== null && (
           <div className="mt-2 flex items-center gap-3">
             <span className="w-28 shrink-0 text-xs text-muted">Latency</span>
             <span className="text-xs text-foreground">
-              {result.status === "connected" && result.latencyMs !== null
-                ? `${result.latencyMs} ms`
-                : "—"}
+              {status === "online" && latencyMs !== null ? `${latencyMs} ms` : "—"}
             </span>
           </div>
         )}

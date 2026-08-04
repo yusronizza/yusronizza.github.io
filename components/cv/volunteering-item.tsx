@@ -1,4 +1,4 @@
-import type { VolunteeringEntry } from "@/lib/data/profile";
+import type { VolunteeringEntry } from "@/lib/domain/types";
 
 export function VolunteeringItem({ entry }: { entry: VolunteeringEntry }) {
   return (

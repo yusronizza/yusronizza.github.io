@@ -6,8 +6,7 @@ import { getPosts } from "@/lib/api/posts";
 export async function RecentPosts() {
   let posts;
   try {
-    const result = await getPosts({ limit: 3 });
-    posts = result.posts;
+    ({ data: posts } = await getPosts({ limit: 3 }));
   } catch {
     return (
       <Section title="Recent writing" index={3} className="border-t border-border">

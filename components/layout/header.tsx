@@ -7,15 +7,25 @@ import { siteConfig } from "@/lib/config/site";
 import { Container } from "@/components/layout/container";
 import { SocialIconLinks } from "@/components/layout/social-icons";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import type { MenuItem } from "@/lib/domain/types";
 
-export function Header() {
+const ChevronDown = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+export function Header({ menu }: { menu: MenuItem[] }) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [expandedItem, setExpandedItem] = useState<number | null>(null);
 
-  function isActive(href: string) {
-    if (href === "/") return pathname === "/";
-    return pathname === href || pathname.startsWith(`${href}/`);
+  function isActive(path: string) {
+    if (path === "/") return pathname === "/";
+    return pathname === path || pathname.startsWith(`${path}/`);
   }
+
+  const visibleItems = menu.filter((item) => item.isVisible);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur print:hidden">
@@ -24,13 +34,51 @@ export function Header() {
           {siteConfig.shortName}
         </Link>
 
+        {/* Desktop nav */}
         <nav className="hidden items-center gap-1 sm:flex">
-          {siteConfig.nav.map((item) => {
-            const active = isActive(item.href);
+          {visibleItems.map((item) => {
+            const active = isActive(item.path);
+            const hasChildren = !!item.children?.length;
+
+            if (hasChildren) {
+              return (
+                <div key={item.id} className="group relative">
+                  <Link
+                    href={item.path}
+                    className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-accent/10 text-accent"
+                        : "text-muted hover:bg-surface hover:text-foreground"
+                    }`}
+                  >
+                    {item.label}
+                    <ChevronDown className="h-3 w-3 transition-transform group-hover:rotate-180" />
+                  </Link>
+                  <div className="absolute left-0 top-full pt-1 hidden group-hover:block">
+                    <div className="min-w-[160px] rounded-lg border border-border bg-background py-1 shadow-lg">
+                      {item.children!.map((child) => (
+                        <Link
+                          key={child.id}
+                          href={child.path}
+                          className={`block px-4 py-2 text-sm transition-colors ${
+                            isActive(child.path)
+                              ? "text-accent"
+                              : "text-muted hover:bg-surface hover:text-foreground"
+                          }`}
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.id}
+                href={item.path}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                   active
                     ? "bg-accent/10 text-accent"
@@ -47,6 +95,7 @@ export function Header() {
           </div>
         </nav>
 
+        {/* Mobile toggle */}
         <div className="flex items-center gap-2 sm:hidden">
           <ThemeToggle />
           <button
@@ -67,22 +116,56 @@ export function Header() {
         </div>
       </Container>
 
+      {/* Mobile nav */}
       {isMenuOpen && (
         <nav className="border-t border-border sm:hidden">
           <Container className="flex flex-col py-2">
-            {siteConfig.nav.map((item) => {
-              const active = isActive(item.href);
+            {visibleItems.map((item) => {
+              const active = isActive(item.path);
+              const hasChildren = !!item.children?.length;
+              const isExpanded = expandedItem === item.id;
+
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium ${
-                    active ? "text-accent" : "text-muted"
-                  }`}
-                >
-                  {item.label}
-                </Link>
+                <div key={item.id}>
+                  {hasChildren ? (
+                    <button
+                      type="button"
+                      onClick={() => setExpandedItem(isExpanded ? null : item.id)}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium ${
+                        active ? "text-accent" : "text-muted"
+                      }`}
+                    >
+                      {item.label}
+                      <ChevronDown className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.path}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`block rounded-lg px-3 py-2 text-sm font-medium ${
+                        active ? "text-accent" : "text-muted"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  )}
+                  {hasChildren && isExpanded && (
+                    <div className="ml-4 border-l border-border pl-3">
+                      {item.children!.map((child) => (
+                        <Link
+                          key={child.id}
+                          href={child.path}
+                          onClick={() => { setIsMenuOpen(false); setExpandedItem(null); }}
+                          className={`block rounded-lg px-3 py-1.5 text-sm ${
+                            isActive(child.path) ? "text-accent" : "text-muted"
+                          }`}
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
             <SocialIconLinks className="mt-2 border-t border-border px-3 pt-3" />

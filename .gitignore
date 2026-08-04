@@ -45,3 +45,4 @@ next-env.d.ts
 # .claude directory is used to store Claude AI's local data and should be ignored
 .claude
 /.claude
+/sub-project

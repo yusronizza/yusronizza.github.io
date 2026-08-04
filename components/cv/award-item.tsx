@@ -1,4 +1,4 @@
-import type { AwardEntry } from "@/lib/data/profile";
+import type { AwardEntry } from "@/lib/domain/types";
 
 export function AwardItem({ entry }: { entry: AwardEntry }) {
   return (

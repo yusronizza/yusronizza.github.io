@@ -10,6 +10,7 @@ type CreateMetadataOptions = {
   type?: "website" | "article";
   publishedTime?: string;
   tags?: string[];
+  imageUrl?: string;
 };
 
 export function createMetadata({
@@ -20,6 +21,7 @@ export function createMetadata({
   type = "website",
   publishedTime,
   tags,
+  imageUrl,
 }: CreateMetadataOptions): Metadata {
   const url = `${siteConfig.url}${path}`;
   const resolvedTitle = isRoot ? title : `${title} | ${siteConfig.shortName}`;
@@ -42,6 +44,7 @@ export function createMetadata({
       type,
       ...(type === "article" && publishedTime ? { publishedTime } : {}),
       ...(type === "article" && tags ? { tags } : {}),
+      ...(imageUrl ? { images: [{ url: imageUrl }] } : {}),
     },
     twitter: {
       card: "summary_large_image",

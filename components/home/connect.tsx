@@ -5,9 +5,9 @@ import { Section } from "@/components/ui/section";
 import { siteConfig } from "@/lib/config/site";
 
 const secondaryLinks = [
-  { label: "GitHub", href: siteConfig.social.github },
-  { label: "LinkedIn", href: siteConfig.social.linkedin },
-  { label: "Download CV", href: "/files/Yusron_Izza_Faradisa_CV.pdf" },
+  { label: "GitHub", href: siteConfig.social.github, external: true },
+  { label: "LinkedIn", href: siteConfig.social.linkedin, external: true },
+  { label: "Download CV", href: siteConfig.cvPdfPath, external: false },
 ];
 
 export function Connect() {
@@ -30,13 +30,13 @@ export function Connect() {
               technical conversation. Reach out — I usually reply within a day.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <LinkButton href={siteConfig.social.email}>Email me</LinkButton>
+              <LinkButton href="/contact">Send a message</LinkButton>
               {secondaryLinks.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target={link.external ? "_blank" : undefined}
+                  rel={link.external ? "noopener noreferrer" : undefined}
                   className="text-sm font-medium text-accent hover:underline"
                 >
                   {link.label}

@@ -11,9 +11,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteConfig.url}/about`, changeFrequency: "yearly", priority: 0.8 },
     { url: `${siteConfig.url}/cv`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${siteConfig.url}/projects`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${siteConfig.url}/tools`, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${siteConfig.url}/tools/pomodoro`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteConfig.url}/blog`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteConfig.url}/contact`, changeFrequency: "yearly", priority: 0.6 },
   ];
 
   const [projectsResult, postsResult] = await Promise.allSettled([
@@ -22,9 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const projects = projectsResult.status === "fulfilled" ? projectsResult.value : [];
-  const { posts } = postsResult.status === "fulfilled"
-    ? postsResult.value
-    : { posts: [] };
+  const posts = postsResult.status === "fulfilled" ? postsResult.value.data : [];
 
   const projectRoutes: MetadataRoute.Sitemap = projects.map((project) => ({
     url: `${siteConfig.url}/projects/${project.slug}`,

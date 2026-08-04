@@ -16,7 +16,7 @@ export default function Loading() {
           ))}
           <Skeleton className="mt-6 h-6 w-56" />
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={`p2-${i}`} className={`h-4 ${i % 4 === 3 ? "w-2/3" : "w-full"}`} />
+            <Skeleton key={i} className={`h-4 ${i % 4 === 3 ? "w-2/3" : "w-full"}`} />
           ))}
         </div>
       </section>

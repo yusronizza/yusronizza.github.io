@@ -11,10 +11,3 @@ export function PageHeaderSkeleton() {
   );
 }
 
-export function SectionHeadingSkeleton() {
-  return (
-    <div className="mb-10">
-      <Skeleton className="h-8 w-48" />
-    </div>
-  );
-}

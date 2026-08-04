@@ -1,5 +1,5 @@
 import { formatMonthYear } from "@/lib/utils/format";
-import type { ExperienceEntry } from "@/lib/data/profile";
+import type { ExperienceEntry } from "@/lib/domain/types";
 
 export function ExperienceItem({ entry }: { entry: ExperienceEntry }) {
   return (

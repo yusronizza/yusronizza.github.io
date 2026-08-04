@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { Section } from "@/components/ui/section";
 import { Badge } from "@/components/ui/badge";
-import { MarkdownContent } from "@/components/blog/markdown-content";
 import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { blogPostingSchema, breadcrumbSchema } from "@/lib/seo/schema";
@@ -30,6 +29,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.publishedAt,
       tags: post.tags,
+      imageUrl: post.coverImageUrl || undefined,
     });
   } catch {
     return {};
@@ -68,7 +68,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <Badge key={tag}>{tag}</Badge>
           ))}
         </div>
-        <MarkdownContent content={post.content} />
+        <div
+          className="prose-content"
+          dangerouslySetInnerHTML={{ __html: post.contentHtml }}
+        />
       </Section>
     </>
   );

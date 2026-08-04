@@ -48,12 +48,3 @@ export function InterestCardSkeleton() {
   );
 }
 
-export function ToolCardSkeleton() {
-  return (
-    <div className="rounded-xl border border-border/60 bg-surface p-6 shadow-sm">
-      <Skeleton className="h-5 w-40" />
-      <Skeleton className="mt-3 h-4 w-full" />
-      <Skeleton className="mt-1.5 h-4 w-3/4" />
-    </div>
-  );
-}

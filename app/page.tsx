@@ -5,9 +5,8 @@ import { FeaturedProjects } from "@/components/home/featured-projects";
 import { RecentPosts } from "@/components/home/recent-posts";
 import { Connect } from "@/components/home/connect";
 import { ServerStatus } from "@/components/home/server-status";
-import { JsonLd } from "@/components/seo/json-ld";
+import { FadeIn } from "@/components/ui/fade-in";
 import { createMetadata } from "@/lib/seo/metadata";
-import { websiteSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@/lib/config/site";
 
 export const dynamic = "force-dynamic";
@@ -22,13 +21,12 @@ export const metadata: Metadata = createMetadata({
 export default function HomePage() {
   return (
     <>
-      <JsonLd data={websiteSchema()} />
       <Hero />
-      <Interests />
-      <FeaturedProjects />
-      <RecentPosts />
-      <Connect />
-      <ServerStatus />
+      <FadeIn><Interests /></FadeIn>
+      <FadeIn><FeaturedProjects /></FadeIn>
+      <FadeIn><RecentPosts /></FadeIn>
+      <FadeIn><Connect /></FadeIn>
+      <FadeIn><ServerStatus /></FadeIn>
     </>
   );
 }

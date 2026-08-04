@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { SkillGroup } from "@/lib/data/profile";
+import type { SkillGroup } from "@/lib/domain/types";
 
 export function SkillsSection({ groups }: { groups: SkillGroup[] }) {
   return (

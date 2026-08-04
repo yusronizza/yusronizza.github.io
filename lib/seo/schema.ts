@@ -1,6 +1,5 @@
 import { siteConfig } from "@/lib/config/site";
-import type { PostSummary, ProjectSummary, Tool } from "@/lib/domain/types";
-import type { Profile } from "@/lib/data/profile";
+import type { PostSummary, ProjectSummary, Profile } from "@/lib/domain/types";
 
 export function personSchema(profile: Profile) {
   return {
@@ -41,6 +40,7 @@ export function blogPostingSchema(post: PostSummary) {
     },
     url: `${siteConfig.url}/blog/${post.slug}`,
     keywords: post.tags.join(", "),
+    ...(post.coverImageUrl ? { image: post.coverImageUrl } : {}),
   };
 }
 
@@ -56,23 +56,6 @@ export function projectSchema(project: ProjectSummary) {
     },
     url: `${siteConfig.url}/projects/${project.slug}`,
     keywords: project.tags.join(", "),
-  };
-}
-
-export function softwareApplicationSchema(tool: Tool) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: tool.title,
-    description: tool.description,
-    url: `${siteConfig.url}/tools/${tool.slug}`,
-    applicationCategory: "UtilitiesApplication",
-    operatingSystem: "Any",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    },
   };
 }
 

@@ -15,6 +15,7 @@ export const siteConfig = {
     "Portfolio of Yusron Izza Faradisa, an embedded systems and digital systems engineer.",
   locale: "en_US",
   themeColor: "#0d0d0d",
+  cvPdfPath: "/files/Yusron_Izza_Faradisa_CV.pdf",
   author: {
     name: "Yusron Izza Faradisa",
     email: "yusronizzafaradisa@gmail.com",
@@ -29,7 +30,7 @@ export const siteConfig = {
     { label: "About", href: "/about" },
     { label: "CV", href: "/cv" },
     { label: "Projects", href: "/projects" },
-    { label: "Tools", href: "/tools" },
     { label: "Blog", href: "/blog" },
+    { label: "Contact", href: "/contact" },
   ],
 } as const;

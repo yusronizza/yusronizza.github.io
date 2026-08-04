@@ -6,10 +6,28 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Container } from "@/components/layout/container";
 import { JsonLd } from "@/components/seo/json-ld";
+import { ServerOfflineModal } from "@/components/ui/server-offline-modal";
+import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { themeScript } from "@/components/theme/theme-script";
 import { siteConfig } from "@/lib/config/site";
 import { websiteSchema } from "@/lib/seo/schema";
+import { getMenu } from "@/lib/api/menu";
+import type { MenuItem } from "@/lib/domain/types";
 import "./globals.css";
+
+const FALLBACK_MENU: MenuItem[] = siteConfig.nav.map((item, i) => ({
+  id: i,
+  group: "public" as const,
+  parentId: null,
+  section: "",
+  label: item.label,
+  path: item.href,
+  icon: "",
+  sortOrder: i * 10,
+  isVisible: true,
+  createdAt: "",
+  updatedAt: "",
+}));
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -55,11 +73,13 @@ export const viewport: Viewport = {
   themeColor: siteConfig.themeColor,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const menu = await getMenu().catch(() => FALLBACK_MENU);
+
   return (
     <html
       lang="en"
@@ -71,11 +91,13 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <JsonLd data={websiteSchema()} />
-        <Header />
+        <Header menu={menu} />
         <main className="flex-1">
           <Container>{children}</Container>
         </main>
         <Footer />
+        <ServerOfflineModal />
+        <PageViewTracker />
         <Analytics />
         <SpeedInsights />
       </body>

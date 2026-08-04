@@ -1,13 +1,13 @@
 import { cache } from "react";
 import { apiFetch } from "./client";
-import {
-  profile as localProfile,
-  type Profile,
-  type SkillGroup,
-  type EducationEntry,
-  type CertificationEntry,
-  type AwardEntry,
-} from "@/lib/data/profile";
+import type {
+  Profile,
+  SkillGroup,
+  EducationEntry,
+  CertificationEntry,
+  AwardEntry,
+  VolunteeringEntry,
+} from "@/lib/domain/types";
 
 type RawExperience = {
   role: string;
@@ -24,45 +24,32 @@ type RawProfile = {
   title: string;
   tagline: string;
   location: string;
+  website: string;
   bio: string[];
-  email: string;
   skills: SkillGroup[];
   experience: RawExperience[];
   education: EducationEntry[];
   certifications: CertificationEntry[];
   awards: AwardEntry[];
+  volunteering: VolunteeringEntry[];
+  languages: { name: string; level: string }[];
+  interests: string[];
+  created_at: string;
 };
 
-function toProfile(raw: RawProfile): Profile {
+function toProfile({ experience, created_at: createdAt, ...rest }: RawProfile): Profile {
   return {
-    name: raw.name,
-    title: raw.title,
-    tagline: raw.tagline,
-    location: raw.location,
-    bio: raw.bio,
-    skills: raw.skills,
-    experience: raw.experience.map((e) => ({
-      role: e.role,
-      organization: e.organization,
-      location: e.location,
-      startDate: e.start_date,
-      endDate: e.end_date,
-      summary: e.summary,
-      highlights: e.highlights,
+    ...rest,
+    createdAt,
+    experience: experience.map(({ start_date: startDate, end_date: endDate, ...e }) => ({
+      ...e,
+      startDate,
+      endDate,
     })),
-    education: raw.education,
-    certifications: raw.certifications,
-    awards: raw.awards,
-    // Fields not yet in the API — kept from local data
-    phone: localProfile.phone,
-    website: localProfile.website,
-    volunteering: localProfile.volunteering,
-    languages: localProfile.languages,
-    interests: localProfile.interests,
   };
 }
 
 export const getProfile = cache(async (): Promise<Profile> => {
-  const res = await apiFetch<{ data: RawProfile }>("/profile");
+  const res = await apiFetch<{ data: RawProfile }>("/public/profile");
   return toProfile(res.data);
 });

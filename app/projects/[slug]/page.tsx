@@ -42,8 +42,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     throw err;
   }
 
-  const hasLinks = Boolean(project.links.live || project.links.repo);
-
   return (
     <>
       <JsonLd data={projectSchema(project)} />
@@ -59,7 +57,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         title={project.title}
         description={project.description}
         actions={
-          hasLinks ? (
+          (project.links.live || project.links.repo) ? (
             <>
               {project.links.live && (
                 <LinkButton href={project.links.live} external>

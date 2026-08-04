@@ -1,11 +1,10 @@
 import { siteConfig } from "@/lib/config/site";
-import type { Profile } from "@/lib/data/profile";
+import type { Profile } from "@/lib/domain/types";
 
 export function ContactRow({ profile }: { profile: Profile }) {
   return (
     <div className="flex flex-wrap gap-x-6 gap-y-2 border-b border-border py-6 text-sm text-muted">
       <span>{profile.location}</span>
-      <span>{profile.phone}</span>
       <a href={siteConfig.social.email} className="transition-colors hover:text-accent">
         {siteConfig.author.email}
       </a>

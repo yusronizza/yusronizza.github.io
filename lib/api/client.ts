@@ -1,4 +1,5 @@
 const API_BASE = `${process.env.API_URL ?? "http://localhost:8080"}/api/v1`;
+const CLIENT_KEY = process.env.API_CLIENT_KEY;
 
 export function buildUrl(path: string, qs: URLSearchParams): string {
   const q = qs.toString();
@@ -19,10 +20,12 @@ export class ApiError extends Error {
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
+  const baseHeaders: Record<string, string> = { "Content-Type": "application/json" };
+  if (CLIENT_KEY) baseHeaders["X-Client-Key"] = CLIENT_KEY;
   try {
     res = await fetch(`${API_BASE}${path}`, {
-      headers: { "Content-Type": "application/json" },
       ...init,
+      headers: { ...baseHeaders, ...(init?.headers as Record<string, string> | undefined) },
     });
   } catch {
     throw new ApiError("NETWORK_ERROR", "Network request failed", 0);

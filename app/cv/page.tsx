@@ -13,6 +13,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema, personSchema } from "@/lib/seo/schema";
 import { getProfile } from "@/lib/api/profile";
+import { siteConfig } from "@/lib/config/site";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,7 @@ export default async function CvPage() {
         description={profile.title}
         actions={
           <>
-            <LinkButton href="/files/Yusron_Izza_Faradisa_CV.pdf" external>
+            <LinkButton href={siteConfig.cvPdfPath} external>
               Download CV (PDF)
             </LinkButton>
             <PrintButton />

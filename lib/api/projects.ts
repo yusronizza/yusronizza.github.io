@@ -11,6 +11,7 @@ type RawProjectSummary = {
   year: number;
   featured: boolean;
   links: { live?: string; repo?: string };
+  status: string;
 };
 
 type RawProject = RawProjectSummary & {
@@ -28,6 +29,7 @@ function toProjectSummary(raw: RawProjectSummary): ProjectSummary {
     year: raw.year,
     featured: raw.featured,
     links: raw.links ?? {},
+    status: raw.status as ProjectSummary["status"],
   };
 }
 
@@ -42,18 +44,23 @@ function toProject(raw: RawProject): Project {
 export type ProjectsParams = {
   featured?: boolean;
   tag?: string;
+  status?: string;
+  sort?: string;
 };
 
 export async function getProjects(params?: ProjectsParams): Promise<ProjectSummary[]> {
   const qs = new URLSearchParams();
   if (params?.featured) qs.set("featured", "true");
   if (params?.tag) qs.set("tag", params.tag);
+  if (params?.status) qs.set("status", params.status);
+  if (params?.sort) qs.set("sort", params.sort);
 
-  const res = await apiFetch<{ data: RawProjectSummary[] }>(buildUrl("/projects", qs));
+  const res = await apiFetch<{ data: RawProjectSummary[] }>(buildUrl("/public/projects", qs));
   return res.data.map(toProjectSummary);
 }
 
 export const getProject = cache(async (slug: string): Promise<Project> => {
-  const res = await apiFetch<{ data: RawProject }>(`/projects/${slug}`);
+  const res = await apiFetch<{ data: RawProject }>(`/public/projects/${slug}`);
   return toProject(res.data);
 });
+
