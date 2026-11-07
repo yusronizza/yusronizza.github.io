@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { apiFetch, buildUrl } from "./client";
+import { apiFetch, buildUrl, TAGS } from "./client";
 import type { Project, ProjectSummary } from "@/lib/domain/types";
 import { DEFAULT_LANG } from "@/lib/i18n";
 
@@ -62,12 +62,12 @@ export async function getProjects(params?: ProjectsParams): Promise<ProjectSumma
   if (params?.sort) qs.set("sort", params.sort);
   if (params?.lang) qs.set("lang", params.lang);
 
-  const res = await apiFetch<{ data: RawProjectSummary[] }>(buildUrl("/public/projects", qs));
+  const res = await apiFetch<{ data: RawProjectSummary[] }>(buildUrl("/public/projects", qs), { tags: [TAGS.projects] });
   return res.data.map(toProjectSummary);
 }
 
 export const getProject = cache(async (slug: string, lang = DEFAULT_LANG): Promise<Project> => {
-  const res = await apiFetch<{ data: RawProject }>(`/public/projects/${encodeURIComponent(slug)}?lang=${encodeURIComponent(lang)}`);
+  const res = await apiFetch<{ data: RawProject }>(`/public/projects/${encodeURIComponent(slug)}?lang=${encodeURIComponent(lang)}`, { tags: [TAGS.projects] });
   return toProject(res.data);
 });
 

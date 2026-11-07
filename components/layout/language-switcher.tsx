@@ -1,31 +1,29 @@
 "use client";
 
-import { useTransition } from "react";
-import { setLang } from "@/app/actions/set-lang";
-import { SUPPORTED_LANGS, LANG_LABELS, type Lang } from "@/lib/i18n";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LANG_LABELS, LANG_NAMES, SUPPORTED_LANGS, localePath, splitLocale, type Lang } from "@/lib/i18n";
 
-export function LanguageSwitcher({ current }: { current: Lang }) {
-  const [isPending, startTransition] = useTransition();
-
+// Links to the current page in each language. Plain links (not a cookie)
+// so every language version has its own crawlable URL.
+export function LanguageSwitcher({ current, label }: { current: Lang; label: string }) {
+  const { path } = splitLocale(usePathname());
   return (
-    <div className="flex items-center gap-1 text-xs font-medium">
+    <nav aria-label={label} className="flex items-center gap-1 text-xs font-medium">
       {SUPPORTED_LANGS.map((code, i) => (
         <span key={code} className="flex items-center gap-1">
-          {i > 0 && <span className="text-border select-none">·</span>}
-          <button
-            type="button"
-            disabled={isPending || current === code}
-            onClick={() => startTransition(() => setLang(code))}
-            className={`transition-colors ${
-              current === code
-                ? "text-accent"
-                : "text-muted hover:text-foreground disabled:cursor-not-allowed"
-            }`}
-          >
-            {LANG_LABELS[code]}
-          </button>
+          {i > 0 && <span aria-hidden="true" className="select-none text-border">·</span>}
+          {code === current ? (
+            <span aria-current="true" lang={code} className="text-accent">
+              {LANG_LABELS[code]}
+            </span>
+          ) : (
+            <Link href={localePath(code, path)} hrefLang={code} lang={code} title={LANG_NAMES[code]} className="text-muted transition-colors hover:text-foreground">
+              {LANG_LABELS[code]}
+            </Link>
+          )}
         </span>
       ))}
-    </div>
+    </nav>
   );
 }

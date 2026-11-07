@@ -1,4 +1,4 @@
-import { apiFetch } from "./client";
+import { apiFetch, TAGS } from "./client";
 import type { MenuItem } from "@/lib/domain/types";
 
 type RawMenuItem = {
@@ -44,6 +44,6 @@ function toMenuItem(raw: RawMenuItem): MenuItem {
 }
 
 export async function getMenu(): Promise<MenuItem[]> {
-  const res = await apiFetch<{ data: RawMenuItem[] }>("/public/menu");
+  const res = await apiFetch<{ data: RawMenuItem[] }>("/public/menu", { tags: [TAGS.menu] });
   return res.data.map(toMenuItem);
 }

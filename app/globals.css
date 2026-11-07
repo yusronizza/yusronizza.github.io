@@ -121,3 +121,28 @@ body {
 }
 .prose-content th { background: var(--surface); font-weight: 600; }
 .prose-content img { max-width: 100%; border-radius: 0.5rem; }
+
+/* Scroll reveal for home-page sections. Pure CSS: content is visible by
+   default and only animates where scroll-driven animations are supported and
+   the visitor hasn't asked for reduced motion — no JavaScript, so nothing is
+   hidden before hydration (better for first paint and for crawlers). */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

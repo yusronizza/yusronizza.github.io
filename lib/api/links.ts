@@ -27,6 +27,6 @@ function toShortLink(raw: RawShortLink): ShortLink {
 }
 
 export const resolveLink = cache(async (code: string): Promise<ShortLink> => {
-  const res = await apiFetch<{ data: RawShortLink }>(`/public/links/${encodeURIComponent(code)}`);
+  const res = await apiFetch<{ data: RawShortLink }>(`/public/links/${encodeURIComponent(code)}`, "no-store");
   return toShortLink(res.data);
 });

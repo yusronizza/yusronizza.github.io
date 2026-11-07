@@ -1,40 +1,54 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/config/site";
 import { getProjects } from "@/lib/api/projects";
-import { getPosts } from "@/lib/api/posts";
+import { getAllPosts } from "@/lib/api/posts";
+import { SUPPORTED_LANGS, localePath, type Lang } from "@/lib/i18n";
+import { languageAlternates } from "@/lib/seo/metadata";
 
 export const revalidate = 3600;
 
+// One entry per page per language, each listing its translations
+// (hreflang alternates), so search engines index every language version.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${siteConfig.url}/`, changeFrequency: "monthly", priority: 1 },
-    { url: `${siteConfig.url}/about`, changeFrequency: "yearly", priority: 0.8 },
-    { url: `${siteConfig.url}/cv`, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${siteConfig.url}/projects`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${siteConfig.url}/blog`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${siteConfig.url}/contact`, changeFrequency: "yearly", priority: 0.6 },
+  const entry = (lang: Lang, path: string, extra: Partial<MetadataRoute.Sitemap[number]>, available?: string[]) => ({
+    url: `${siteConfig.url}${localePath(lang, path)}`,
+    alternates: { languages: languageAlternates(path, available) },
+    ...extra,
+  });
+
+  const staticPages: [string, MetadataRoute.Sitemap[number]["changeFrequency"], number][] = [
+    ["/", "monthly", 1],
+    ["/about", "yearly", 0.8],
+    ["/cv", "monthly", 0.8],
+    ["/projects", "weekly", 0.9],
+    ["/blog", "weekly", 0.9],
+    ["/contact", "yearly", 0.6],
   ];
 
-  const [projectsResult, postsResult] = await Promise.allSettled([
-    getProjects(),
-    getPosts({ limit: 1000 }),
-  ]);
+  const entries: MetadataRoute.Sitemap = [];
+  for (const lang of SUPPORTED_LANGS) {
+    for (const [path, changeFrequency, priority] of staticPages) {
+      entries.push(entry(lang, path, { changeFrequency, priority }));
+    }
+  }
 
-  const projects = projectsResult.status === "fulfilled" ? projectsResult.value : [];
-  const posts = postsResult.status === "fulfilled" ? postsResult.value.data : [];
-
-  const projectRoutes: MetadataRoute.Sitemap = projects.map((project) => ({
-    url: `${siteConfig.url}/projects/${project.slug}`,
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
-
-  const postRoutes: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${siteConfig.url}/blog/${post.slug}`,
-    lastModified: post.publishedAt,
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
-
-  return [...staticRoutes, ...projectRoutes, ...postRoutes];
+  // Posts and projects only exist in the languages they were translated into.
+  const perLang = await Promise.all(
+    SUPPORTED_LANGS.map(async (lang) => ({
+      lang,
+      posts: await getAllPosts(lang).catch(() => []),
+      projects: await getProjects({ lang }).catch(() => []),
+    }))
+  );
+  for (const { lang, posts, projects } of perLang) {
+    for (const post of posts) {
+      if (post.locale && post.locale !== lang) continue; // a fallback, not a translation
+      entries.push(entry(lang, `/blog/${post.slug}`, { lastModified: post.publishedAt, changeFrequency: "monthly", priority: 0.6 }, post.availableLocales));
+    }
+    for (const project of projects) {
+      if (project.locale && project.locale !== lang) continue;
+      entries.push(entry(lang, `/projects/${project.slug}`, { changeFrequency: "monthly", priority: 0.6 }, project.availableLocales));
+    }
+  }
+  return entries;
 }

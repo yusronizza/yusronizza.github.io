@@ -1,32 +1,14 @@
 import type { SVGProps } from "react";
 import { Section } from "@/components/ui/section";
+import { getDictionary, type Lang } from "@/lib/i18n";
 
-const interests = [
-  {
-    title: "Computer Architecture",
-    description: "Processor design, pipelines, and instruction set architecture.",
-    icon: CpuIcon,
-  },
-  {
-    title: "Embedded & Digital System Design",
-    description: "Microcontrollers, FPGAs, and digital logic design.",
-    icon: CircuitIcon,
-  },
-  {
-    title: "VLSI",
-    description: "Digital and mixed-signal circuit design at the silicon level.",
-    icon: LayersIcon,
-  },
-  {
-    title: "Robotics",
-    description: "Control systems, sensors, and autonomous machines.",
-    icon: RobotIcon,
-  },
-];
+const ICONS = [CpuIcon, CircuitIcon, LayersIcon, RobotIcon];
 
-export function Interests() {
+export function Interests({ lang }: { lang: Lang }) {
+  const t = getDictionary(lang).home;
+  const interests = t.interestItems.map((item, i) => ({ ...item, icon: ICONS[i % ICONS.length] }));
   return (
-    <Section title="Interests" index={1} className="border-t border-border">
+    <Section title={t.interests} index={1} className="border-t border-border">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {interests.map((interest) => (
           <div

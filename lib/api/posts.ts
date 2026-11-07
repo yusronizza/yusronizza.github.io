@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { apiFetch, buildUrl } from "./client";
+import { apiFetch, buildUrl, TAGS } from "./client";
 import type { PaginationMeta, Post, PostSummary } from "@/lib/domain/types";
 import { DEFAULT_LANG } from "@/lib/i18n";
 
@@ -81,12 +81,12 @@ export async function getPosts(params?: PostsParams): Promise<PostsPage> {
   if (params?.status) qs.set("status", params.status);
   if (params?.lang) qs.set("lang", params.lang);
 
-  const res = await apiFetch<{ data: RawPostSummary[]; meta: RawMeta }>(buildUrl("/public/posts", qs));
+  const res = await apiFetch<{ data: RawPostSummary[]; meta: RawMeta }>(buildUrl("/public/posts", qs), { tags: [TAGS.posts] });
   return { data: res.data.map(toPostSummary), meta: toMeta(res.meta) };
 }
 
 export const getPost = cache(async (slug: string, lang = DEFAULT_LANG): Promise<Post> => {
-  const res = await apiFetch<{ data: RawPost }>(`/public/posts/${encodeURIComponent(slug)}?lang=${encodeURIComponent(lang)}`);
+  const res = await apiFetch<{ data: RawPost }>(`/public/posts/${encodeURIComponent(slug)}?lang=${encodeURIComponent(lang)}`, { tags: [TAGS.posts] });
   return toPost(res.data);
 });
 
@@ -105,7 +105,9 @@ export async function searchPosts(params: SearchPostsParams): Promise<PostsPage>
   if (params.lang) qs.set("lang", params.lang);
 
   const res = await apiFetch<{ data: RawPostSummary[]; meta: RawMeta }>(
-    buildUrl("/public/posts/search", qs)
+    buildUrl("/public/posts/search", qs),
+    // Searches are open-ended, so cache them only briefly.
+    { tags: [TAGS.posts], revalidate: 300 }
   );
   return { data: res.data.map(toPostSummary), meta: toMeta(res.meta) };
 }
@@ -113,7 +115,21 @@ export async function searchPosts(params: SearchPostsParams): Promise<PostsPage>
 export type PostTag = { tag: string; count: number };
 
 export async function getTags(): Promise<PostTag[]> {
-  const res = await apiFetch<{ data: PostTag[] }>("/public/posts/tags");
+  const res = await apiFetch<{ data: PostTag[] }>("/public/posts/tags", { tags: [TAGS.posts] });
   return res.data;
 }
 
+
+// Every published post in a language, following cursors (the API caps a page
+// at 100). For the sitemap and feeds, which must not silently stop at one page.
+export async function getAllPosts(lang: string): Promise<PostSummary[]> {
+  const all: PostSummary[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < 50; page++) {
+    const { data, meta } = await getPosts({ limit: 100, cursor, lang });
+    all.push(...data);
+    if (!meta.nextCursor) break;
+    cursor = meta.nextCursor;
+  }
+  return all;
+}

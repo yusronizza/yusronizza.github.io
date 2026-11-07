@@ -2,16 +2,24 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LIMIT_OPTIONS, DEFAULT_LIMIT } from "@/lib/blog/pagination";
+import { LIMIT_OPTIONS } from "@/lib/blog/pagination";
+import type { Dictionary } from "@/lib/i18n";
 
+// The parent remounts this (key) when the URL's filters change, so the
+// search box starts from the current query without syncing state in an effect.
 export function PostsControls({
+  basePath,
   initialQ,
   initialLimit,
   initialTag,
+  labels: t,
 }: {
+  basePath: string;
   initialQ: string;
   initialLimit: number;
   initialTag: string;
+  // Plain strings only: functions can't be passed to a client component.
+  labels: Pick<Dictionary["blog"], "search" | "clearSearch" | "perPage" | "filteringBy" | "tag"> & { removeTag: string };
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,9 +28,6 @@ export function PostsControls({
 
   useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
 
-  useEffect(() => {
-    setInputValue(initialQ);
-  }, [initialQ]);
 
   const buildUrl = useCallback(
     (overrides: Record<string, string | undefined>) => {
@@ -36,9 +41,9 @@ export function PostsControls({
         }
       }
       const qs = params.toString();
-      return `/blog${qs ? `?${qs}` : ""}`;
+      return `${basePath}${qs ? `?${qs}` : ""}`;
     },
-    [searchParams]
+    [searchParams, basePath]
   );
 
   const handleSearchChange = useCallback(
@@ -92,7 +97,8 @@ export function PostsControls({
           </svg>
           <input
             type="search"
-            placeholder="Search posts…"
+            placeholder={t.search}
+            aria-label={t.search}
             value={inputValue}
             onChange={(e) => {
               setInputValue(e.target.value);
@@ -103,7 +109,7 @@ export function PostsControls({
           {inputValue && (
             <button
               type="button"
-              aria-label="Clear search"
+              aria-label={t.clearSearch}
               onClick={handleClearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
             >
@@ -121,7 +127,7 @@ export function PostsControls({
 
         {/* Limit selector */}
         <div className="flex shrink-0 items-center gap-2 text-sm">
-          <span className="text-muted">Per page:</span>
+          <span className="text-muted">{t.perPage}</span>
           <div className="flex gap-1">
             {LIMIT_OPTIONS.map((n) => (
               <button
@@ -144,13 +150,13 @@ export function PostsControls({
       {/* Active filter chips */}
       {(initialTag || (initialQ && !initialTag)) && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-muted">Filtering by:</span>
+          <span className="text-muted">{t.filteringBy}</span>
           {initialTag && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-              tag: {initialTag}
+              {t.tag}: {initialTag}
               <button
                 type="button"
-                aria-label={`Remove tag filter: ${initialTag}`}
+                aria-label={t.removeTag}
                 onClick={handleClearTag}
                 className="ml-0.5 hover:opacity-70"
               >
@@ -170,7 +176,7 @@ export function PostsControls({
               &ldquo;{initialQ}&rdquo;
               <button
                 type="button"
-                aria-label="Clear search filter"
+                aria-label={t.clearSearch}
                 onClick={handleClearSearch}
                 className="ml-0.5 hover:opacity-70"
               >

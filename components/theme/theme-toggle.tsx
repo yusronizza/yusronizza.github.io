@@ -1,17 +1,21 @@
 "use client";
 
-export function ThemeToggle() {
+export function ThemeToggle({ label = "Toggle color theme" }: { label?: string }) {
   function toggle() {
     const next = !document.documentElement.classList.contains("dark");
     document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
+    try {
+      localStorage.setItem("theme", next ? "dark" : "light");
+    } catch {
+      // Storage unavailable (private mode): the choice lasts for this page only.
+    }
   }
 
   return (
     <button
       type="button"
       onClick={toggle}
-      aria-label="Toggle color theme"
+      aria-label={label}
       className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-accent hover:text-accent"
     >
       <SunIcon aria-hidden="true" className="hidden h-4 w-4 dark:block" />

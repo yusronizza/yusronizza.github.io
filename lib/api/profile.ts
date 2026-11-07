@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { apiFetch } from "./client";
+import { apiFetch, TAGS } from "./client";
 import { DEFAULT_LANG } from "@/lib/i18n";
 import type {
   Profile,
@@ -54,6 +54,6 @@ function toProfile({ experience, created_at: createdAt, available_locales: avail
 }
 
 export const getProfile = cache(async (lang = DEFAULT_LANG): Promise<Profile> => {
-  const res = await apiFetch<{ data: RawProfile }>(`/public/profile?lang=${lang}`);
+  const res = await apiFetch<{ data: RawProfile }>(`/public/profile?lang=${encodeURIComponent(lang)}`, { tags: [TAGS.profile] });
   return toProfile(res.data);
 });

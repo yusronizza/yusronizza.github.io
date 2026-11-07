@@ -3,16 +3,18 @@ import { LinkButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Section } from "@/components/ui/section";
 import { siteConfig } from "@/lib/config/site";
+import { getDictionary, localePath, type Lang } from "@/lib/i18n";
 
-const secondaryLinks = [
-  { label: "GitHub", href: siteConfig.social.github, external: true },
-  { label: "LinkedIn", href: siteConfig.social.linkedin, external: true },
-  { label: "Download CV", href: siteConfig.cvPdfPath, external: false },
-];
 
-export function Connect() {
+export function Connect({ lang }: { lang: Lang }) {
+  const t = getDictionary(lang).home;
+  const secondaryLinks = [
+    { label: "GitHub", href: siteConfig.social.github, external: true },
+    { label: "LinkedIn", href: siteConfig.social.linkedin, external: true },
+    { label: t.downloadCv, href: siteConfig.cvPdfPath, external: false },
+  ];
   return (
-    <Section title="Connect with me" index={4} className="border-t border-border">
+    <Section title={t.connectTitle} index={4} className="border-t border-border">
       <Card>
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-border">
@@ -25,12 +27,9 @@ export function Connect() {
             />
           </div>
           <div className="flex-1">
-            <p className="max-w-lg text-lg">
-              Open to embedded systems and IoT roles, freelance collaborations, or just a good
-              technical conversation. Reach out — I usually reply within a day.
-            </p>
+            <p className="max-w-lg text-lg">{t.connectBody}</p>
             <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-              <LinkButton href="/contact">Send a message</LinkButton>
+              <LinkButton href={localePath(lang, "/contact")}>{t.sendMessage}</LinkButton>
               {secondaryLinks.map((link) => (
                 <a
                   key={link.label}

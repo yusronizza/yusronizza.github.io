@@ -45,6 +45,8 @@ export default function GlobalError({ reset }: { reset: () => void }) {
           >
             Try again
           </button>
+          {/* A full page load on purpose: this boundary replaces the root layout, so client navigation may be unavailable. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
             style={{

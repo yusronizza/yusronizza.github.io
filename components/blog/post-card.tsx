@@ -4,15 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils/format";
 import type { PostSummary } from "@/lib/domain/types";
 
-export function PostCard({ post }: { post: PostSummary }) {
+import { getDictionary, localePath, type Lang } from "@/lib/i18n";
+
+export function PostCard({ post, lang }: { post: PostSummary; lang: Lang }) {
   return (
     <Card className="relative h-full hover:shadow-md">
       <div className="flex items-center justify-between gap-4">
         <time dateTime={post.publishedAt} className="text-xs text-muted">
-          {formatDate(post.publishedAt)}
+          {formatDate(post.publishedAt, lang)}
         </time>
         <span className="shrink-0 text-xs text-muted">
-          {post.readingTimeMinutes} min read
+          {getDictionary(lang).common.minRead(post.readingTimeMinutes)}
         </span>
       </div>
 
@@ -22,7 +24,7 @@ export function PostCard({ post }: { post: PostSummary }) {
       */}
       <h3 className="mt-3 text-lg font-semibold tracking-tight">
         <Link
-          href={`/blog/${post.slug}`}
+          href={localePath(lang, `/blog/${post.slug}`)}
           className="after:absolute after:inset-0"
         >
           {post.title}
@@ -35,7 +37,7 @@ export function PostCard({ post }: { post: PostSummary }) {
         {post.tags.map((tag) => (
           <Link
             key={tag}
-            href={`/blog?tag=${encodeURIComponent(tag)}`}
+            href={`${localePath(lang, "/blog")}?tag=${encodeURIComponent(tag)}`}
             className="transition-opacity hover:opacity-75"
           >
             <Badge>{tag}</Badge>

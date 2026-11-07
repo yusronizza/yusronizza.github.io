@@ -1,4 +1,5 @@
 import { siteConfig } from "@/lib/config/site";
+import { HREFLANG, localePath, type Lang } from "@/lib/i18n";
 import type { PostSummary, ProjectSummary, Profile } from "@/lib/domain/types";
 
 export function personSchema(profile: Profile) {
@@ -27,7 +28,7 @@ export function websiteSchema() {
   };
 }
 
-export function blogPostingSchema(post: PostSummary) {
+export function blogPostingSchema(post: PostSummary, lang: Lang) {
   return {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -38,13 +39,14 @@ export function blogPostingSchema(post: PostSummary) {
       "@type": "Person",
       name: siteConfig.author.name,
     },
-    url: `${siteConfig.url}/blog/${post.slug}`,
+    url: `${siteConfig.url}${localePath(lang, `/blog/${post.slug}`)}`,
+    inLanguage: HREFLANG[lang],
     keywords: post.tags.join(", "),
     ...(post.coverImageUrl ? { image: post.coverImageUrl } : {}),
   };
 }
 
-export function projectSchema(project: ProjectSummary) {
+export function projectSchema(project: ProjectSummary, lang: Lang) {
   return {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
@@ -54,12 +56,13 @@ export function projectSchema(project: ProjectSummary) {
       "@type": "Person",
       name: siteConfig.author.name,
     },
-    url: `${siteConfig.url}/projects/${project.slug}`,
+    url: `${siteConfig.url}${localePath(lang, `/projects/${project.slug}`)}`,
+    inLanguage: HREFLANG[lang],
     keywords: project.tags.join(", "),
   };
 }
 
-export function breadcrumbSchema(items: { name: string; path: string }[]) {
+export function breadcrumbSchema(lang: Lang, items: { name: string; path: string }[]) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -67,7 +70,7 @@ export function breadcrumbSchema(items: { name: string; path: string }[]) {
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: `${siteConfig.url}${item.path}`,
+      item: `${siteConfig.url}${localePath(lang, item.path)}`,
     })),
   };
 }

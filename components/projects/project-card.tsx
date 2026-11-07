@@ -3,9 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { ProjectSummary } from "@/lib/domain/types";
 
-export function ProjectCard({ project }: { project: ProjectSummary }) {
+import { localePath, type Lang } from "@/lib/i18n";
+
+export function ProjectCard({ project, lang }: { project: ProjectSummary; lang: Lang }) {
   return (
-    <Link href={`/projects/${project.slug}`} className="block">
+    <Link href={localePath(lang, `/projects/${project.slug}`)} className="block">
       <Card className="h-full hover:shadow-md">
         <div className="flex items-center justify-between gap-4">
           <h3 className="text-lg font-semibold tracking-tight">{project.title}</h3>

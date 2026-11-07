@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import type { ContactPayload } from "@/lib/domain/types";
+import type { Dictionary } from "@/lib/i18n";
 
 type FieldKey = keyof ContactPayload;
 type FormState = "idle" | "submitting" | "success" | "error";
 
 const INITIAL: ContactPayload = { name: "", email: "", subject: "", message: "" };
 
-export function ContactForm() {
+export function ContactForm({ labels: t }: { labels: Dictionary["contact"] }) {
   const [fields, setFields] = useState<ContactPayload>(INITIAL);
   const [state, setState] = useState<FormState>("idle");
   const [feedback, setFeedback] = useState<string>("");
@@ -36,7 +37,7 @@ export function ContactForm() {
 
       if (res.status === 202) {
         setState("success");
-        setFeedback(json?.data?.message ?? "Message sent. I'll get back to you soon.");
+        setFeedback(t.sent);
         setFields(INITIAL);
         return;
       }
@@ -52,15 +53,15 @@ export function ContactForm() {
       }
 
       if (res.status === 429) {
-        setFeedback("Too many requests. Please wait before trying again.");
+        setFeedback(t.tooMany);
         setState("error");
         return;
       }
 
-      setFeedback("Something went wrong. Please try again.");
+      setFeedback(t.failed);
       setState("error");
     } catch {
-      setFeedback("Network error. Please check your connection and try again.");
+      setFeedback(t.offline);
       setState("error");
     }
   }
@@ -72,14 +73,14 @@ export function ContactForm() {
       <div className="grid gap-5 sm:grid-cols-2">
         <Field
           id="name"
-          label="Name"
+          label={t.name}
           type="text"
           value={fields.name}
           onChange={(v) => set("name", v)}
           error={fieldErrors.name}
           required
           disabled={isSubmitting}
-          placeholder="Yusron Izza"
+          placeholder={t.namePlaceholder}
         />
         <Field
           id="email"
@@ -96,19 +97,19 @@ export function ContactForm() {
 
       <Field
         id="subject"
-        label="Subject"
+        label={t.subject}
         type="text"
         value={fields.subject}
         onChange={(v) => set("subject", v)}
         error={fieldErrors.subject}
         required
         disabled={isSubmitting}
-        placeholder="Collaboration inquiry"
+        placeholder={t.subjectPlaceholder}
       />
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="message" className="text-sm font-medium text-foreground">
-          Message <span className="text-accent" aria-hidden="true">*</span>
+          {t.message} <span className="text-accent" aria-hidden="true">*</span>
         </label>
         <textarea
           id="message"
@@ -117,7 +118,7 @@ export function ContactForm() {
           disabled={isSubmitting}
           value={fields.message}
           onChange={(e) => set("message", e.target.value)}
-          placeholder="Tell me about your project or just say hi..."
+          placeholder={t.messagePlaceholder}
           className="resize-y rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
         {fieldErrors.message && (
@@ -142,7 +143,7 @@ export function ContactForm() {
         disabled={isSubmitting}
         className="self-start rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Sending…" : "Send message"}
+        {isSubmitting ? t.sending : t.send}
       </button>
     </form>
   );
