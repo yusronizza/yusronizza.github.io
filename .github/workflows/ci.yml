@@ -1,0 +1,39 @@
+name: CI
+
+# Deployment is handled by Vercel's Git integration (preview per branch,
+# production from main). This workflow checks every push and pull request.
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Type check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+      - name: Production dependencies have no high/critical advisories
+        run: npm audit --omit=dev --audit-level=high
+      - name: Build
+        # No API is reachable here: pages that fetch at build time fall back
+        # gracefully, and ISR fills them in once deployed.
+        env:
+          API_URL: http://127.0.0.1:9
+          NEXT_PUBLIC_SITE_URL: https://yusronizza.com
+        run: npm run build
