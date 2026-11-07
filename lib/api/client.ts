@@ -1,3 +1,5 @@
+import "server-only";
+
 const API_BASE = `${process.env.API_URL ?? "http://localhost:8080"}/api/v1`;
 const CLIENT_KEY = process.env.API_CLIENT_KEY;
 

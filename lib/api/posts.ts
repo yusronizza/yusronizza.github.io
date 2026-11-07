@@ -86,7 +86,7 @@ export async function getPosts(params?: PostsParams): Promise<PostsPage> {
 }
 
 export const getPost = cache(async (slug: string, lang = DEFAULT_LANG): Promise<Post> => {
-  const res = await apiFetch<{ data: RawPost }>(`/public/posts/${slug}?lang=${lang}`);
+  const res = await apiFetch<{ data: RawPost }>(`/public/posts/${encodeURIComponent(slug)}?lang=${encodeURIComponent(lang)}`);
   return toPost(res.data);
 });
 

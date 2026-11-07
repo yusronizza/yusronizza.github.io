@@ -67,7 +67,7 @@ export async function getProjects(params?: ProjectsParams): Promise<ProjectSumma
 }
 
 export const getProject = cache(async (slug: string, lang = DEFAULT_LANG): Promise<Project> => {
-  const res = await apiFetch<{ data: RawProject }>(`/public/projects/${slug}?lang=${lang}`);
+  const res = await apiFetch<{ data: RawProject }>(`/public/projects/${encodeURIComponent(slug)}?lang=${encodeURIComponent(lang)}`);
   return toProject(res.data);
 });
 

@@ -6,7 +6,6 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Container } from "@/components/layout/container";
 import { JsonLd } from "@/components/seo/json-ld";
-import { ServerOfflineModal } from "@/components/ui/server-offline-modal";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { themeScript } from "@/components/theme/theme-script";
 import { siteConfig } from "@/lib/config/site";
@@ -100,7 +99,6 @@ export default async function RootLayout({
           <Container>{children}</Container>
         </main>
         <Footer />
-        <ServerOfflineModal />
         <PageViewTracker />
         <Analytics />
         <SpeedInsights />
