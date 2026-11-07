@@ -31,9 +31,10 @@ jobs:
       - name: Production dependencies have no high/critical advisories
         run: npm audit --omit=dev --audit-level=high
       - name: Build
-        # No API is reachable here: pages that fetch at build time fall back
-        # gracefully, and ISR fills them in once deployed.
+        # No API is reachable in CI, so skip build-time pre-rendering (pages
+        # render on first request). Vercel builds pre-render normally.
         env:
+          SKIP_PRERENDER: "1"
           API_URL: http://127.0.0.1:9
           NEXT_PUBLIC_SITE_URL: https://yusronizza.com
         run: npm run build

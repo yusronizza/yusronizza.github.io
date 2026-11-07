@@ -22,7 +22,13 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 // One static build per language. Other first segments are rejected by the
 // notFound() below rather than dynamicParams = false, which child segments
 // would inherit (blocking on-demand post and project pages).
+//
+// SKIP_PRERENDER=1 (CI, where no API is reachable) skips build-time
+// rendering; pages are then rendered on first request instead. Production
+// builds should pre-render: a build that can't reach the API fails rather
+// than deploying error pages.
 export function generateStaticParams() {
+  if (process.env.SKIP_PRERENDER === "1") return [];
   return SUPPORTED_LANGS.map((lang) => ({ lang }));
 }
 

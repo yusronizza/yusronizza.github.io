@@ -6,6 +6,7 @@ import { getDictionary, HREFLANG, SUPPORTED_LANGS, isValidLang, localePath } fro
 // /id/feed.xml). Cached like the pages and refreshed with the "posts" tag.
 export const revalidate = 3600;
 export function generateStaticParams() {
+  if (process.env.SKIP_PRERENDER === "1") return [];
   return SUPPORTED_LANGS.map((lang) => ({ lang }));
 }
 
