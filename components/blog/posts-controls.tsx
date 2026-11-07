@@ -18,6 +18,8 @@ export function PostsControls({
   const [inputValue, setInputValue] = useState(initialQ);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
+
   useEffect(() => {
     setInputValue(initialQ);
   }, [initialQ]);

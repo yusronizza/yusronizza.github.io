@@ -16,6 +16,16 @@ type RawMenuItem = {
   children?: RawMenuItem[];
 };
 
+function isMenuPath(path: string): boolean {
+  if (path.startsWith("/")) return true;
+  try {
+    const { protocol } = new URL(path);
+    return protocol === "https:" || protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 function toMenuItem(raw: RawMenuItem): MenuItem {
   return {
     id: raw.id,
@@ -23,7 +33,7 @@ function toMenuItem(raw: RawMenuItem): MenuItem {
     parentId: raw.parent_id,
     section: raw.section,
     label: raw.label,
-    path: raw.path,
+    path: isMenuPath(raw.path) ? raw.path : "/",
     icon: raw.icon,
     sortOrder: raw.sort_order,
     isVisible: raw.is_visible,

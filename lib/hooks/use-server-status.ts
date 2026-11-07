@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type ServerOnlineStatus = "checking" | "online" | "offline";
 
@@ -28,10 +28,17 @@ export function useServerStatus(): ServerStatusState {
   const [status, setStatus] = useState<ServerOnlineStatus>("checking");
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
   const [checkedAt, setCheckedAt] = useState<Date | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const recheck = useCallback(async () => {
+    if (!mountedRef.current) return;
     setStatus("checking");
     const result = await pingServer();
+    if (!mountedRef.current) return;
     setStatus(result.ok ? "online" : "offline");
     setLatencyMs(result.ok ? result.latencyMs : null);
     setCheckedAt(new Date());

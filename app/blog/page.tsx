@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { getPosts, searchPosts } from "@/lib/api/posts";
+import { getLang } from "@/lib/get-lang";
 
 export const dynamic = "force-dynamic";
 
@@ -17,26 +18,30 @@ export const metadata: Metadata = createMetadata({
   path: "/blog",
 });
 
-const navLinkClass =
-  "inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-accent hover:text-accent";
-const disabledClass =
-  "inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-muted opacity-40 cursor-not-allowed select-none";
+const paginationBase =
+  "inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium";
+const navLinkClass = `${paginationBase} transition-colors hover:border-accent hover:text-accent`;
+const disabledClass = `${paginationBase} text-muted opacity-40 cursor-not-allowed select-none`;
 
 export default async function BlogPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; cursor?: string; limit?: string; tag?: string }>;
 }) {
-  const { q = "", cursor, limit: limitParam, tag = "" } = await searchParams;
+  const [{ q = "", cursor, limit: limitParam, tag = "" }, lang] = await Promise.all([
+    searchParams,
+    getLang(),
+  ]);
 
   const rawLimit = Number(limitParam);
   const limit = isValidLimit(rawLimit) ? rawLimit : DEFAULT_LIMIT;
 
+  const trimmedQ = q.trim();
   // search and tag are mutually exclusive — search takes priority
   const { data: posts, meta } =
-    q.trim()
-      ? await searchPosts({ q: q.trim(), limit, cursor })
-      : await getPosts({ limit, cursor, tag: tag || undefined });
+    trimmedQ
+      ? await searchPosts({ q: trimmedQ, limit, cursor, lang })
+      : await getPosts({ limit, cursor, tag: tag || undefined, lang });
 
   const isEmpty = posts.length === 0;
 
@@ -55,10 +60,10 @@ export default async function BlogPage({
 
       {isEmpty ? (
         <p className="py-12 text-sm text-muted">
-          {q.trim()
-            ? `No posts matched “${q.trim()}”.`
+          {trimmedQ
+            ? `No posts matched "${trimmedQ}".`
             : tag
-            ? `No posts tagged “${tag}”.`
+            ? `No posts tagged "${tag}".`
             : "No posts yet."}
         </p>
       ) : (

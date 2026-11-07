@@ -4,26 +4,29 @@
  */
 
 const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yusronizza.com";
+const AUTHOR_NAME = "Yusron Izza Faradisa";
+const AUTHOR_EMAIL = "yusronizzafaradisa@gmail.com";
 
 export const siteConfig = {
-  name: "Yusron Izza Faradisa",
+  name: AUTHOR_NAME,
   shortName: "Yusron Izza",
   url: rawSiteUrl.replace(/\/+$/, ""),
-  titleTemplate: "%s | Yusron Izza Faradisa",
-  defaultTitle: "Yusron Izza Faradisa — Embedded Systems & Digital Systems Engineer",
+  tagline: "Embedded Systems & Digital Systems Engineer",
+  titleTemplate: `%s | ${AUTHOR_NAME}`,
+  defaultTitle: `${AUTHOR_NAME} — Embedded Systems & Digital Systems Engineer`,
   description:
-    "Portfolio of Yusron Izza Faradisa, an embedded systems and digital systems engineer.",
+    `Portfolio of ${AUTHOR_NAME}, an embedded systems and digital systems engineer.`,
   locale: "en_US",
   themeColor: "#0d0d0d",
   cvPdfPath: "/files/Yusron_Izza_Faradisa_CV.pdf",
   author: {
-    name: "Yusron Izza Faradisa",
-    email: "yusronizzafaradisa@gmail.com",
+    name: AUTHOR_NAME,
+    email: AUTHOR_EMAIL,
   },
   social: {
     github: "https://github.com/yusronizza",
     linkedin: "https://www.linkedin.com/in/yusronizza",
-    email: "mailto:yusronizzafaradisa@gmail.com",
+    email: `mailto:${AUTHOR_EMAIL}`,
   },
   nav: [
     { label: "Home", href: "/" },

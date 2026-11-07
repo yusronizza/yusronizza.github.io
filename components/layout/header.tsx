@@ -7,7 +7,9 @@ import { siteConfig } from "@/lib/config/site";
 import { Container } from "@/components/layout/container";
 import { SocialIconLinks } from "@/components/layout/social-icons";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import type { MenuItem } from "@/lib/domain/types";
+import type { Lang } from "@/lib/i18n";
 
 const ChevronDown = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
@@ -15,7 +17,7 @@ const ChevronDown = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export function Header({ menu }: { menu: MenuItem[] }) {
+export function Header({ menu, lang }: { menu: MenuItem[]; lang: Lang }) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [expandedItem, setExpandedItem] = useState<number | null>(null);
@@ -90,6 +92,7 @@ export function Header({ menu }: { menu: MenuItem[] }) {
             );
           })}
           <div className="ml-2 flex items-center gap-2 border-l border-border pl-3">
+            <LanguageSwitcher current={lang} />
             <SocialIconLinks />
             <ThemeToggle />
           </div>
@@ -168,7 +171,10 @@ export function Header({ menu }: { menu: MenuItem[] }) {
                 </div>
               );
             })}
-            <SocialIconLinks className="mt-2 border-t border-border px-3 pt-3" />
+            <div className="mt-2 border-t border-border px-3 pt-3">
+              <LanguageSwitcher current={lang} />
+            </div>
+            <SocialIconLinks className="border-t border-border px-3 pt-3" />
           </Container>
         </nav>
       )}

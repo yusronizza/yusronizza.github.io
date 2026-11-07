@@ -12,6 +12,7 @@ import { themeScript } from "@/components/theme/theme-script";
 import { siteConfig } from "@/lib/config/site";
 import { websiteSchema } from "@/lib/seo/schema";
 import { getMenu } from "@/lib/api/menu";
+import { getLang } from "@/lib/get-lang";
 import type { MenuItem } from "@/lib/domain/types";
 import "./globals.css";
 
@@ -78,11 +79,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const menu = await getMenu().catch(() => FALLBACK_MENU);
+  const [menu, lang] = await Promise.all([
+    getMenu().catch(() => FALLBACK_MENU),
+    getLang(),
+  ]);
 
   return (
     <html
-      lang="en"
+      lang={lang}
       className={`${plusJakartaSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
@@ -91,7 +95,7 @@ export default async function RootLayout({
       </head>
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <JsonLd data={websiteSchema()} />
-        <Header menu={menu} />
+        <Header menu={menu} lang={lang} />
         <main className="flex-1">
           <Container>{children}</Container>
         </main>

@@ -17,19 +17,29 @@ function formatTs(iso: string): string {
   });
 }
 
+function isSafeUrl(url: string): boolean {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "https:" || protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 export function RedirectCountdown({ link }: { link: ShortLink }) {
   const [remaining, setRemaining] = useState(SECONDS);
   const [cancelled, setCancelled] = useState(false);
+  const safeTarget = isSafeUrl(link.targetUrl) ? link.targetUrl : null;
 
   useEffect(() => {
-    if (cancelled) return;
+    if (cancelled || !safeTarget) return;
     if (remaining <= 0) {
-      window.location.href = link.targetUrl;
+      window.location.href = safeTarget;
       return;
     }
     const id = setTimeout(() => setRemaining((n) => n - 1), 1000);
     return () => clearTimeout(id);
-  }, [remaining, cancelled, link.targetUrl]);
+  }, [remaining, cancelled, safeTarget]);
 
   const dashOffset = C * (1 - remaining / SECONDS);
 
@@ -104,19 +114,27 @@ export function RedirectCountdown({ link }: { link: ShortLink }) {
             <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-muted">
               Destination
             </p>
-            <a
-              href={link.targetUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-1 block break-all font-mono text-sm text-accent hover:underline"
-            >
-              {link.targetUrl}
-            </a>
+            {safeTarget ? (
+              <a
+                href={safeTarget}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 block break-all font-mono text-sm text-accent hover:underline"
+              >
+                {safeTarget}
+              </a>
+            ) : (
+              <span className="mt-1 block break-all font-mono text-sm text-muted">
+                {link.targetUrl}
+              </span>
+            )}
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <LinkButton href={link.targetUrl} external>
-                Go now
-              </LinkButton>
+              {safeTarget && (
+                <LinkButton href={safeTarget} external>
+                  Go now
+                </LinkButton>
+              )}
               {cancelled ? (
                 <LinkButton href="/" variant="secondary">
                   Go home

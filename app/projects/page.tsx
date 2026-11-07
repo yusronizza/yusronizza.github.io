@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { getProjects } from "@/lib/api/projects";
+import { getLang } from "@/lib/get-lang";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = createMetadata({
 });
 
 export default async function ProjectsPage() {
-  const projects = await getProjects();
+  const projects = await getProjects({ lang: await getLang() });
 
   return (
     <>

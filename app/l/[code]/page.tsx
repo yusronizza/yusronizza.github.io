@@ -32,5 +32,7 @@ export default async function LinkRedirectPage({ params }: LinkRedirectPageProps
     throw err;
   }
 
+  if (!link.isActive) notFound();
+
   return <RedirectCountdown link={link} />;
 }

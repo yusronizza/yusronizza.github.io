@@ -13,6 +13,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema, personSchema } from "@/lib/seo/schema";
 import { getProfile } from "@/lib/api/profile";
+import { getLang } from "@/lib/get-lang";
 import { siteConfig } from "@/lib/config/site";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CvPage() {
-  const profile = await getProfile();
+  const profile = await getProfile(await getLang());
 
   return (
     <>

@@ -29,6 +29,8 @@ export type PostSummary = {
   readingTimeMinutes: number;
   status: "draft" | "scheduled" | "published";
   coverImageUrl: string;
+  locale: string;
+  availableLocales: string[];
 };
 
 export type Post = PostSummary & {
@@ -68,6 +70,8 @@ export type ProjectSummary = {
   featured: boolean;
   links: ProjectLinks;
   status: "active" | "in-progress" | "archived";
+  locale: string;
+  availableLocales: string[];
 };
 
 export type Project = ProjectSummary & {
@@ -137,5 +141,7 @@ export type Profile = {
   languages: { name: string; level: string }[];
   interests: string[];
   createdAt: string;
+  locale: string;
+  availableLocales: string[];
 };
 

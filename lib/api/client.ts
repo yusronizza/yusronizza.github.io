@@ -25,9 +25,13 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   try {
     res = await fetch(`${API_BASE}${path}`, {
       ...init,
+      signal: init?.signal ?? AbortSignal.timeout(10_000),
       headers: { ...baseHeaders, ...(init?.headers as Record<string, string> | undefined) },
     });
-  } catch {
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "TimeoutError") {
+      throw new ApiError("TIMEOUT", "Request timed out", 0);
+    }
     throw new ApiError("NETWORK_ERROR", "Network request failed", 0);
   }
 

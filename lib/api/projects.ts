@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { apiFetch, buildUrl } from "./client";
 import type { Project, ProjectSummary } from "@/lib/domain/types";
+import { DEFAULT_LANG } from "@/lib/i18n";
 
 type RawProjectSummary = {
   slug: string;
@@ -12,6 +13,8 @@ type RawProjectSummary = {
   featured: boolean;
   links: { live?: string; repo?: string };
   status: string;
+  locale: string;
+  available_locales: string[];
 };
 
 type RawProject = RawProjectSummary & {
@@ -30,6 +33,8 @@ function toProjectSummary(raw: RawProjectSummary): ProjectSummary {
     featured: raw.featured,
     links: raw.links ?? {},
     status: raw.status as ProjectSummary["status"],
+    locale: raw.locale,
+    availableLocales: raw.available_locales,
   };
 }
 
@@ -46,6 +51,7 @@ export type ProjectsParams = {
   tag?: string;
   status?: string;
   sort?: string;
+  lang?: string;
 };
 
 export async function getProjects(params?: ProjectsParams): Promise<ProjectSummary[]> {
@@ -54,13 +60,14 @@ export async function getProjects(params?: ProjectsParams): Promise<ProjectSumma
   if (params?.tag) qs.set("tag", params.tag);
   if (params?.status) qs.set("status", params.status);
   if (params?.sort) qs.set("sort", params.sort);
+  if (params?.lang) qs.set("lang", params.lang);
 
   const res = await apiFetch<{ data: RawProjectSummary[] }>(buildUrl("/public/projects", qs));
   return res.data.map(toProjectSummary);
 }
 
-export const getProject = cache(async (slug: string): Promise<Project> => {
-  const res = await apiFetch<{ data: RawProject }>(`/public/projects/${slug}`);
+export const getProject = cache(async (slug: string, lang = DEFAULT_LANG): Promise<Project> => {
+  const res = await apiFetch<{ data: RawProject }>(`/public/projects/${slug}?lang=${lang}`);
   return toProject(res.data);
 });
 

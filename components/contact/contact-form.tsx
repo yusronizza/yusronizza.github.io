@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ContactPayload } from "@/lib/domain/types";
 
-type Field = keyof ContactPayload;
+type FieldKey = keyof ContactPayload;
 type FormState = "idle" | "submitting" | "success" | "error";
 
 const INITIAL: ContactPayload = { name: "", email: "", subject: "", message: "" };
@@ -12,9 +12,9 @@ export function ContactForm() {
   const [fields, setFields] = useState<ContactPayload>(INITIAL);
   const [state, setState] = useState<FormState>("idle");
   const [feedback, setFeedback] = useState<string>("");
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<Field, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
 
-  function set(key: Field, value: string) {
+  function set(key: FieldKey, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }));
     if (fieldErrors[key]) setFieldErrors((prev) => ({ ...prev, [key]: undefined }));
   }

@@ -3,10 +3,12 @@ import { Section } from "@/components/ui/section";
 import { PostCard } from "@/components/blog/post-card";
 import { getPosts } from "@/lib/api/posts";
 
+const RECENT_POSTS_LIMIT = 3;
+
 export async function RecentPosts() {
   let posts;
   try {
-    ({ data: posts } = await getPosts({ limit: 3 }));
+    ({ data: posts } = await getPosts({ limit: RECENT_POSTS_LIMIT }));
   } catch {
     return (
       <Section title="Recent writing" index={3} className="border-t border-border">

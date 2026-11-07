@@ -1,16 +1,23 @@
 # yusronizza-api — API Documentation
 
-**Version:** 2.2.0 (implementation) — adds **submenu support** to the navigation menu: `menu_items` gained
+**Version:** 2.4.0 (implementation) — adds a personal **Expense Tracker** (`/admin/expenses`, section 8.14):
+multi-currency (`USD`/`JPY`/`IDR`, manually-maintained exchange rates), categorized, recurring-aware expense
+records with cross-currency reporting (summary, by-category, monthly, all convertible into one target currency).
+Admin-only — no public equivalent, unlike every other resource.
+
+**v2.3.0** adds **localization** (Posts/Projects/Profile translatable into `en`/`ja`/`id`, plus localized API
+error messages — see section 5's Localization subsection) and a **detailed request/response log**
+(`GET /admin/request-logs`, section 8.13) capturing full, redacted request/response headers and bodies for every
+`/api/v1` call, distinct from the existing aggregate `api-requests` metrics.
+
+**v2.2.0** adds **submenu support** to the navigation menu: `menu_items` gained
 `parent_id`, nesting one level deep. `GET /public/menu`/`GET /admin/menu` now return a nested tree (each top-level
 item carries its submenu items in `children`); the management endpoint (`/admin/menu-items`) stays flat, with
 `parent_id` visible per row, for straightforward table editing. See section 7.8/8.8's "Submenus" note.
 
-**v2.1.0** adds a **media library**: upload images/documents/archives
-(`POST /admin/media`), manage them (`GET`/`PATCH`/`DELETE /admin/media...`), and serve the raw bytes back out at a
-public, unauthenticated `GET /media/{filename}` — outside `/api/v1` entirely, since an `<img src>` tag or a browser
-address bar can't attach an `Authorization` header (section 7.9 and 8.12). Files are stored on local disk (see
-Appendix B's `MEDIA_STORAGE_DIR`) behind a small storage abstraction, so a future move to object storage only
-touches `internal/platform/storage`, nothing else.
+**Media library removed.** The v2.1.0 media library (`/admin/media`, `GET /media/{filename}`, the `media` table and
+`MEDIA_*` settings) has been removed; migration `000024_drop_media` drops its table. Sections 7.9 and 8.12 are kept
+as stubs so the remaining section numbers stay stable.
 
 **v2.0.0** reorganized the entire API into two top-level groups, `/api/v1/public` and `/api/v1/admin`, replacing
 every previous path (e.g. `GET /api/v1/posts` is now `GET /api/v1/public/posts`; its admin-only write counterpart
@@ -25,8 +32,6 @@ full-text + fuzzy search, the API-client registry, the audit log, the request lo
 behavior, just at its new path.
 
 **Base URL:** `http://localhost:8080/api/v1` (local/dev) · `https://yusronizza.com/api/v1` (production, once deployed)
-— except the media-serving route (section 7.9), which deliberately sits at `http://localhost:8080/media/...`, not
-under `/api/v1` at all.
 **Protocol:** HTTP locally, HTTPS in production
 **Format:** JSON (`application/json`) for every request and response body
 
@@ -54,9 +59,12 @@ condition, and every place a design decision was made.
 ## 1. Scope
 
 This service implements Blog Posts, Projects, Profile & CV, Contact, Meta/SEO, a Link Shortener, a Navigation Menu,
-and a full Administration surface (dashboard stats, contact moderation, an API-client registry, web analytics, a
-security audit trail) — split into a **Public API** (section 7) that a frontend or registered integration reads
-from, and an **Admin API** (section 8) that only the site owner can reach.
+a personal Expense Tracker, and a full Administration surface (dashboard stats, contact moderation, an API-client
+registry, web analytics, a detailed request/response log, an application log, a security audit trail) — split
+into a **Public API** (section 7) that a frontend or registered integration reads from, and an **Admin API**
+(section 8) that only the site owner can reach. Posts, Projects, and Profile are translatable into English,
+Japanese, and Indonesian — see section 5's Localization subsection. The Expense Tracker (section 8.14) has no
+public equivalent at all — it's private financial data.
 
 ---
 
@@ -174,14 +182,24 @@ arbitrary browser or bot, not a registered application, is the intended caller:
 Every error response has the same shape:
 
 ```json
-{ "error": { "code": "NOT_FOUND", "message": "No post with slug 'missing-post' exists.", "field": null } }
+{ "error": { "code": "NOT_FOUND", "message": "No post with slug 'missing-post' exists.", "field": null, "request_id": "de578d47b59da10d" } }
 ```
 
-| Field     | Type           | Description                                                |
-|-----------|----------------|--------------------------------------------------------------|
-| `code`    | string         | Machine-readable code, see table below                     |
-| `message` | string         | Human-readable description, safe to display                |
-| `field`   | string \| null | Set on `VALIDATION_ERROR` to name the failing request field |
+| Field        | Type           | Description                                                |
+|--------------|----------------|--------------------------------------------------------------|
+| `code`       | string         | Machine-readable code, see table below                     |
+| `message`    | string         | Human-readable description, safe to display                |
+| `field`      | string \| null | Set on `VALIDATION_ERROR` to name the failing request field |
+| `request_id` | string         | Correlation id for this exact request — see below |
+
+**Correlation id (`X-Request-Id`):** every response, success or error, carries an `X-Request-Id` header — a short
+id generated per request (or echoed back unchanged if the caller/an upstream proxy already sent one in the
+request's own `X-Request-Id` header). Error responses also include it as `request_id` in the `{"error": {...}}`
+body itself, so a client reporting a failure has it either way. Hand that value to
+`GET /admin/request-logs?request_id=` (section 8.13) to pull up the exact request/response record — full headers
+and bodies — for troubleshooting, instead of searching by path/time window. It's also attached to this server's
+own structured logs and to the persisted `request_logs` row for the same request, so the same id ties together
+every place that request left a trace.
 
 | HTTP Status | Code                  | When                                                                 |
 |-------------|-----------------------|-----------------------------------------------------------------------|
@@ -262,6 +280,49 @@ timestamps.
 **CORS:** open wildcard (`Access-Control-Allow-Origin: *`) for every cookie-free caller; `CORS_ALLOWED_ORIGINS`
 origins get the specific-origin-plus-credentials treatment instead — see section 2.3.
 
+**Localization:** Posts, Projects, and Profile (sections 7.1–7.3, 8.2–8.4) are translatable into `en` (default),
+`ja`, and `id`. Every read endpoint for those three resources resolves to one locale, chosen by (in priority
+order) an explicit `?lang=en|ja|id` query param, then the `Accept-Language` header's first supported entry
+(`ja-JP` matches `ja`; q-weighting is ignored — only the first supported tag in the header is used), then `en`.
+Every response carries the locale it actually resolved to:
+
+```json
+{ "data": { "title": "...", "locale": "ja", "available_locales": ["en", "ja"], ... } }
+```
+
+`GET .../{slug}` falls back to the `en` translation if the requested locale has none for that resource (`locale`
+in the response then reports `"en"`, not the one requested) — a direct fetch of a specific, already-identified
+resource should show *something* rather than 404 just because a translation is incomplete. List/Search endpoints
+do **not** fall back: they only ever return resources that genuinely have a translation in the requested locale,
+same as any other filter.
+
+Writing translated content (`POST`/`PATCH` on Posts/Projects/Profile) uses a `translations` object keyed by
+locale instead of flat `title`/`excerpt`/etc. fields:
+
+```json
+{
+  "tags": ["go"],
+  "published_at": "2026-08-01",
+  "translations": {
+    "en": { "title": "...", "excerpt": "...", "content": "..." },
+    "ja": { "title": "...", "excerpt": "...", "content": "..." }
+  }
+}
+```
+
+`POST` (create) requires at least `translations.en` — English is this deployment's guaranteed fallback locale, so
+every resource needs at least that one translation to ever be resolvable. `PATCH` (update) only upserts the
+locales present in `translations`; any locale omitted from the object is left exactly as it was — patching just
+`translations.ja` never touches `en`. Every other field (`tags`, `status`, `published_at`, `year`, `links`,
+`website`, ...) is locale-independent and lives at the top level either way, unaffected by which locale(s) a given
+write touches.
+
+Everything else — error/validation messages in the `{"error": {...}}` envelope (section 3) — is also localized
+the same way (`?lang=`/`Accept-Language`, same priority order), independently of any content locale. A request
+combining content and error localization behaves exactly as you'd expect: `GET /public/posts/{slug}?lang=ja`
+returns the post's Japanese translation (or English, on fallback) and, if that request 404s instead, a Japanese
+error message.
+
 ---
 
 ## 6. Health Check
@@ -310,15 +371,13 @@ lives at `/admin/posts` instead (section 8.2).
 see 8.2's validation table) is a single header/thumbnail image, returned as-is on both `Post` and `PostSummary`.
 Inline images inside `content` use standard Markdown image syntax (`![alt text](url "optional title")`), rendered
 server-side to a real `<img>` tag in `content_html` — no special handling needed, this is core CommonMark, not an
-extension. Either can point anywhere: an external URL, or a file uploaded via this API's own media library
-(`POST /admin/media`, section 8.12), whose response includes the `url` to paste into `cover_image_url` or a
-content image tag. Neither field is verified to actually *resolve* to a real image (this backend has no way to
+extension. Either can point to any external URL. Neither field is verified to actually *resolve* to a real image (this backend has no way to
 fetch and inspect it) — only that it's a well-formed URL.
 
 #### 7.1.1 List Posts **[client key or admin]**
 
 ```
-GET /public/posts?limit=&cursor=&tag=&sort=&status=&fields=
+GET /public/posts?limit=&cursor=&tag=&sort=&status=&fields=&lang=
 ```
 
 | Parameter | Type    | Default         | Notes |
@@ -329,6 +388,7 @@ GET /public/posts?limit=&cursor=&tag=&sort=&status=&fields=
 | `sort`    | string  | `-published_at`  | `published_at` or `title`, either direction |
 | `status`  | string  | —                | **Admin only** — `draft`/`scheduled`/`published`; ignored otherwise |
 | `fields`  | string  | —                | Sparse fieldset |
+| `lang`    | string  | `en`             | `en`/`ja`/`id` — see section 5's Localization; List **only returns posts that have a translation in this locale** (no fallback) |
 
 Returns `PostSummary` (all `Post` fields except `content`/`content_html`):
 
@@ -343,7 +403,9 @@ Returns `PostSummary` (all `Post` fields except `content`/`content_html`):
       "published_at": "2026-06-15",
       "reading_time_minutes": 4,
       "status": "published",
-      "cover_image_url": ""
+      "cover_image_url": "",
+      "locale": "en",
+      "available_locales": ["en", "id", "ja"]
     }
   ],
   "meta": { "total": 3, "limit": 10, "next_cursor": null, "prev_cursor": null }
@@ -353,17 +415,21 @@ Returns `PostSummary` (all `Post` fields except `content`/`content_html`):
 #### 7.1.2 Get Post by Slug **[client key or admin]**
 
 ```
-GET /public/posts/{slug}
+GET /public/posts/{slug}?lang=
 ```
 
 Returns the full `Post` (includes `content`/`content_html`). A draft/not-yet-due slug 404s for a non-admin caller
-with the same message as a nonexistent slug, so its existence is never leaked.
+with the same message as a nonexistent slug, so its existence is never leaked. Unlike List/Search, `lang` **falls
+back to `en`** if this post has no translation for the requested locale — see section 5.
 
 #### 7.1.3 Search Posts **[client key or admin]**
 
 ```
-GET /public/posts/search?q=&limit=&cursor=
+GET /public/posts/search?q=&limit=&cursor=&lang=
 ```
+
+Same no-fallback locale scoping as List (7.1.1) — a post with no translation in `lang` never appears in that
+locale's search results.
 
 Full-text search across `title`/`excerpt`/`content` (weighted A/B/C respectively) via `websearch_to_tsquery` —
 `q` accepts natural search syntax (quoted phrases, `-exclude`, `or`). Ranked by `ts_rank`, cursor-paginated exactly
@@ -405,11 +471,12 @@ Posts.
 #### 7.2.1 List Projects **[client key or admin]**
 
 ```
-GET /public/projects?featured=&tag=&status=&sort=&fields=
+GET /public/projects?featured=&tag=&status=&sort=&fields=&lang=
 ```
 
 Not paginated — returns the entire filtered/sorted set as `ProjectSummary` (all fields except
-`long_description`).
+`long_description`). `lang` (default `en`) behaves like Posts List (7.1.1): **only projects with a translation in
+that locale** are returned, no fallback — see section 5.
 
 | Parameter  | Type    | Default | Notes |
 |------------|---------|---------|-------|
@@ -417,23 +484,26 @@ Not paginated — returns the entire filtered/sorted set as `ProjectSummary` (al
 | `tag`      | string  | —       | Exact-match containment filter |
 | `status`   | string  | —       | `active`, `in-progress`, or `archived` |
 | `sort`     | string  | `-year` | `year` or `title` |
+| `lang`     | string  | `en`    | `en`/`ja`/`id` |
 
 #### 7.2.2 Search Projects **[client key or admin]**
 
 ```
-GET /public/projects/search?q=&limit=
+GET /public/projects/search?q=&limit=&lang=
 ```
 
 Full-text search across `title`/`description` (weighted A/B). Unpaginated top-N (`limit`, default `10`, clamped
 `[1,100]`), unlike Posts search — no fuzzy-title fallback either; this endpoint is unchanged from prior releases.
+`lang` scopes the same no-fallback way List does.
 
 #### 7.2.3 Get Project by Slug **[client key or admin]**
 
 ```
-GET /public/projects/{slug}
+GET /public/projects/{slug}?lang=
 ```
 
-Returns the full `Project`, including `long_description`.
+Returns the full `Project`, including `long_description`, resolved to `lang` (default `en`) — falls back to `en`
+if this project has no translation for the requested locale, same as Posts (7.1.2).
 
 ### 7.3 Profile & CV
 
@@ -441,13 +511,17 @@ Singleton resource — exactly one row (`profile.id = 1`). No visibility distinc
 reads (8.4) are behaviorally identical.
 
 ```
-GET /public/profile                  → full Profile   [client key or admin]
-GET /public/profile/skills           → SkillGroup[]    [client key or admin]
-GET /public/profile/experience       → ExperienceEntry[] (optional ?current=true)  [client key or admin]
-GET /public/profile/education        → EducationEntry[]  [client key or admin]
-GET /public/profile/certifications   → CertificationEntry[]  [client key or admin]
-GET /public/profile/awards           → AwardEntry[]  [client key or admin]
+GET /public/profile?lang=                  → full Profile   [client key or admin]
+GET /public/profile/skills?lang=           → SkillGroup[]    [client key or admin]
+GET /public/profile/experience?lang=       → ExperienceEntry[] (optional ?current=true)  [client key or admin]
+GET /public/profile/education?lang=        → EducationEntry[]  [client key or admin]
+GET /public/profile/certifications?lang=   → CertificationEntry[]  [client key or admin]
+GET /public/profile/awards?lang=           → AwardEntry[]  [client key or admin]
 ```
+
+`lang` (default `en`) resolves the same as Posts (7.1.2): falls back to `en` if this deployment's profile has no
+translation for the requested locale. `Profile` carries `locale`/`available_locales` the same way Post/Project do
+— see section 5. `website` is the one field with no language, so it's identical regardless of `lang`.
 
 All 404 (`"Profile has not been configured yet."`) in the theoretical case the singleton row is missing — the seed
 migration always creates it, so this shouldn't surface in a normally-provisioned instance.
@@ -544,10 +618,14 @@ a registered client.
     "title": "Clean Architecture on Bare Metal",
     "description": "...",
     "url": "https://yusronizza.com/blog/clean-architecture-on-bare-metal",
-    "image": "https://yusronizza.com/api/v1/public/meta/og-image?path=%2Fblog%2Fclean-architecture-on-bare-metal"
+    "image": "https://yusronizza.com/api/v1/og-image?path=%2Fblog%2Fclean-architecture-on-bare-metal"
   }
 }
 ```
+
+`image` is built from `SITE_BASE_URL` (the frontend origin, same as 7.6.1's `url`), not from this API's own origin —
+`/api/v1/og-image` is a route the **frontend** is expected to implement (e.g. dynamic OG image generation at build
+or request time), not an endpoint this backend serves itself.
 
 ### 7.7 Web Analytics — Page View Beacon
 
@@ -612,29 +690,7 @@ deliberately relative). Not paginated, same reasoning as Projects — a site's n
 
 ### 7.9 Media
 
-```
-GET  /media/{filename}
-HEAD /media/{filename}
-```
-
-**Not under `/api/v1`, and deliberately public/unauthenticated** — no client key, no admin credential. `filename`
-is the random, server-generated name returned as `url` on the `Media` object (section 8.12), not the name the file
-was originally uploaded under. Content negotiation is standard HTTP: `Range` requests (`206 Partial Content`),
-conditional `If-Modified-Since`, and `HEAD` (for checking `Content-Length`/`Content-Type` before downloading) are
-all supported via `http.ServeContent`.
-
-Response headers:
-
-| Header                   | Behavior |
-|---------------------------|----------|
-| `Content-Type`            | The type resolved from the original file extension at upload time — never sniffed, never trusted from a request header |
-| `X-Content-Type-Options`  | Always `nosniff` — pairs with the above so a browser can never execute the response as something other than its declared type |
-| `Content-Disposition`     | `inline` for images (renders in an `<img>`/browser tab); `attachment` for everything else, carrying the *original* filename for the download |
-| `Cache-Control`           | `public, max-age=31536000, immutable` — a filename is never reused by a new upload, so the bytes at a given URL never change |
-
-`404 NOT_FOUND` if `filename` doesn't match any uploaded file (including one that's since been deleted).
-
----
+Removed — this API no longer stores or serves uploaded files.
 
 ## 8. Admin API
 
@@ -713,48 +769,62 @@ Full CRUD, plus the admin's own always-full-visibility reads — no auth branchi
 always sees every status.
 
 ```
-GET    /admin/posts?limit=&cursor=&tag=&sort=&status=
+GET    /admin/posts?limit=&cursor=&tag=&sort=&status=&fields=&lang=
 GET    /admin/posts/tags
-GET    /admin/posts/search?q=&limit=&cursor=
-GET    /admin/posts/{slug}
+GET    /admin/posts/search?q=&limit=&cursor=&lang=
+GET    /admin/posts/{slug}?lang=
 POST   /admin/posts
 PATCH  /admin/posts/{slug}
 DELETE /admin/posts/{slug}
 ```
 
-Reads mirror [7.1](#71-posts) exactly (same params, same fuzzy-search fallback, same `meta` envelope) except
-`status` always takes effect and drafts are never hidden.
+Reads mirror [7.1](#71-posts) exactly (same params, same fuzzy-search fallback, same `meta` envelope, same
+locale-fallback rules) except `status` always takes effect and drafts are never hidden.
 
 **`POST /admin/posts`:**
 
 ```json
 {
-  "title": "My New Article",
-  "excerpt": "A short summary.",
-  "content": "# Heading\n\nMarkdown content...",
   "tags": ["go", "backend"],
   "published_at": "2026-08-04",
   "slug": null,
   "status": "published",
-  "cover_image_url": ""
+  "cover_image_url": "",
+  "translations": {
+    "en": {
+      "title": "My New Article",
+      "excerpt": "A short summary.",
+      "content": "# Heading\n\nMarkdown content..."
+    },
+    "ja": {
+      "title": "私の新しい記事",
+      "excerpt": "短い要約。",
+      "content": "# 見出し\n\nMarkdownコンテンツ..."
+    }
+  }
 }
 ```
 
-| Field             | Required | Validation |
-|-------------------|----------|----------------------------------------------------------|
-| `title`           | yes      | 1–200 characters |
-| `excerpt`         | yes      | 1–500 characters |
-| `content`         | yes      | Non-empty Markdown; rendered to `content_html` server-side |
-| `tags`            | yes      | At least one tag required |
+| Field                    | Required | Validation |
+|--------------------------|----------|----------------------------------------------------------|
+| `translations`           | yes      | Object keyed by locale (`en`/`ja`/`id`); `translations.en` required — see section 5 |
+| `translations.{locale}.title`   | yes (per locale present) | 1–200 characters |
+| `translations.{locale}.excerpt` | yes (per locale present) | 1–500 characters |
+| `translations.{locale}.content` | yes (per locale present) | Non-empty Markdown; rendered to `content_html` server-side, per locale |
+| `tags`            | yes      | At least one tag required; shared across every locale, not translated |
 | `published_at`    | no       | `YYYY-MM-DD`; required if `status` is `scheduled`/`published` |
-| `slug`            | no       | Derived from `title` if omitted; must be unique |
+| `slug`            | no       | Derived from `translations.en.title` if omitted; must be unique; shared across every locale (one URL regardless of language) |
 | `status`          | no       | `draft`/`scheduled`/`published`, default `published` |
 | `cover_image_url` | no       | Empty, or an absolute `http(s)` URL — not verified to resolve to a real image (see 7.1's "Images" note) |
 
-**`201 Created`** with the full `Post`. **`409 CONFLICT`** if the slug already exists.
+**`201 Created`** with the full `Post`, resolved to the request's own `?lang=` (default `en`) — see section 5.
+**`409 CONFLICT`** if the slug already exists.
 
-**`PATCH /admin/posts/{slug}`** — same fields, all optional, partial update (nil/omitted fields untouched). Same
-as `published_at`, an explicit empty string on `cover_image_url` clears it (removes the cover image) rather than
+**`PATCH /admin/posts/{slug}`** — same fields, all optional, partial update (nil/omitted fields untouched).
+`translations` only upserts the locale(s) present in the object — `{"translations": {"ja": {...}}}` touches only
+the Japanese translation, leaving `en`/`id` exactly as they were; each included locale still requires all three of
+`title`/`excerpt`/`content` (a translation is replaced wholesale, not merged field-by-field). Same as
+`published_at`, an explicit empty string on `cover_image_url` clears it (removes the cover image) rather than
 being rejected as invalid — omitting the field entirely is what leaves it untouched.
 **`DELETE /admin/posts/{slug}`** — **`204 No Content`**, **`404`** if the slug doesn't exist.
 
@@ -765,9 +835,9 @@ single canonical row shared across posts and projects.
 ### 8.3 Projects
 
 ```
-GET    /admin/projects?featured=&tag=&status=&sort=
-GET    /admin/projects/search?q=&limit=
-GET    /admin/projects/{slug}
+GET    /admin/projects?featured=&tag=&status=&sort=&fields=&lang=
+GET    /admin/projects/search?q=&limit=&lang=
+GET    /admin/projects/{slug}?lang=
 POST   /admin/projects
 PATCH  /admin/projects/{slug}
 DELETE /admin/projects/{slug}
@@ -781,27 +851,40 @@ distinction by auth at all) — kept as a separate handler purely for routing sy
 ```json
 {
   "slug": "my-project",
-  "title": "My Project",
-  "description": "One-line summary.",
-  "long_description": ["Paragraph one.", "Paragraph two."],
   "tags": ["go", "postgres"],
-  "role": "Personal Project",
   "year": 2026,
   "featured": false,
   "links": { "repo": "https://github.com/...", "live": "" },
-  "highlights": ["Did a thing.", "Did another thing."],
-  "status": "active"
+  "status": "active",
+  "translations": {
+    "en": {
+      "title": "My Project",
+      "description": "One-line summary.",
+      "long_description": ["Paragraph one.", "Paragraph two."],
+      "role": "Personal Project",
+      "highlights": ["Did a thing.", "Did another thing."]
+    }
+  }
 }
 ```
 
-| Field    | Required | Validation |
-|----------|----------|------------------------------------------|
-| `slug`   | yes      | Must be unique |
-| `title`  | yes      | 1–200 characters |
+| Field                              | Required | Validation |
+|-------------------------------------|----------|------------------------------------------|
+| `translations`                      | yes      | Object keyed by locale; `translations.en` required — see section 5 |
+| `translations.{locale}.title`       | yes (per locale present) | Non-empty |
+| `translations.{locale}.description` | yes (per locale present) | Non-empty |
+| `translations.{locale}.role`        | yes (per locale present) | Non-empty |
+| `slug`   | no (defaults from `translations.en.title`) | Must be unique; shared across every locale |
 | `year`   | yes      | Reasonable year value |
 | `status` | no       | `active`/`in-progress`/`archived`, default `active` |
+| `tags`   | no       | Shared across every locale, not translated |
 
-**`201 Created`**, **`409 CONFLICT`** on a duplicate slug, **`404`** on `PATCH`/`DELETE` of an unknown slug.
+**`201 Created`** with the full `Project`, resolved to the request's own `?lang=` (default `en`). **`409
+CONFLICT`** on a duplicate slug, **`404`** on `PATCH`/`DELETE` of an unknown slug.
+
+**`PATCH /admin/projects/{slug}`** — same fields, all optional, partial update. `translations` only upserts the
+locale(s) present, same convention as Posts (8.2) — each included locale still requires all of
+`title`/`description`/`role` together (a translation is replaced wholesale, not merged field-by-field).
 
 ### 8.4 Profile & CV
 
@@ -809,20 +892,24 @@ Singleton resource. Reads mirror [7.3](#73-profile--cv) exactly (behaviorally id
 distinction).
 
 ```
-GET   /admin/profile
-GET   /admin/profile/skills
-GET   /admin/profile/experience
-GET   /admin/profile/education
-GET   /admin/profile/certifications
-GET   /admin/profile/awards
+GET   /admin/profile?lang=
+GET   /admin/profile/skills?lang=
+GET   /admin/profile/experience?lang=
+GET   /admin/profile/education?lang=
+GET   /admin/profile/certifications?lang=
+GET   /admin/profile/awards?lang=
 PATCH /admin/profile
 GET   /admin/profile/history
 ```
 
-**`PATCH /admin/profile`** — every field optional, partial update; array fields (`skills`, `experience`, etc.) are
-replaced wholesale when present, not merged element-by-element. Only fields actually present in the request body
-are considered "set" — `null` vs. omitted is distinguished, so a client can tell "leave `bio` alone" from "clear
-`bio` to an empty array."
+**`PATCH /admin/profile`** applies to `?lang=`'s locale (default `en`) — every translatable field (`name`,
+`title`, `location`, `tagline`, `bio`, `skills`, `experience`, `education`, `certifications`, `awards`,
+`volunteering`, `languages`, `interests`) is optional, partial update *within that locale*; array fields are
+replaced wholesale when present, not merged element-by-element. `website` is the one exception: it has no
+language, so it always applies regardless of `?lang=`. Only fields actually present in the request body are
+considered "set" — `null` vs. omitted is distinguished, so a client can tell "leave `bio` alone" from "clear
+`bio` to an empty array." To translate the profile into a new locale, `PATCH /admin/profile?lang=ja` with every
+translatable field populated (there's no existing Japanese row to partially merge against yet).
 
 **`GET /admin/profile/history`** — the audit trail of every `PATCH`, cursor-paginated (`meta` envelope),
 newest-first:
@@ -832,6 +919,7 @@ newest-first:
   "data": [
     {
       "id": 1,
+      "locale": "en",
       "changed_fields": {
         "tagline": { "old": "Building things.", "new": "Building high-performance, scalable embedded and digital systems." }
       },
@@ -842,10 +930,11 @@ newest-first:
 }
 ```
 
-**Implementation note:** each `PATCH` is diffed field-by-field against the profile as it stood immediately before
-the update — only fields present in the request *and* actually changed produce a history entry. Array fields
-record the entire before/after array, not a per-element diff. Recording history is best-effort: a failure never
-rolls back the profile update itself, only logs server-side.
+**Implementation note:** each `PATCH` is diffed field-by-field against `?lang=`'s locale as it stood immediately
+before the update — only fields present in the request *and* actually changed produce a history entry. `locale`
+records which `?lang=` the `PATCH` was scoped to (including for a `website` change, which itself has no
+language). Array fields record the entire before/after array, not a per-element diff. Recording history is
+best-effort: a failure never rolls back the profile update itself, only logs server-side.
 
 ### 8.5 Link Shortener
 
@@ -1089,22 +1178,41 @@ latency to, or fails, the API call being measured.
 ### 8.10 Dashboard Stats
 
 ```
-GET /admin/stats
+GET /admin/stats?since=&until=
 ```
 
-Aggregates counts across every admin-managed resource in a single call:
+Aggregates all-time totals across every admin-managed resource, plus a recent-activity time series, in a single
+call:
 
 ```json
 {
   "data": {
     "posts": 3, "projects": 2, "links": 12, "link_clicks_total": 483,
-    "contact_messages": 7, "page_views_total": 4213, "api_requests_total": 18420
+    "contact_messages": 7, "page_views_total": 4213, "api_requests_total": 18420,
+    "active_clients": 2,
+    "expenses_count": 57, "expenses_total": { "currency": "USD", "amount": "1204.30" },
+    "timeseries": {
+      "page_views": [ { "date": "2026-07-07", "count": 140 } ],
+      "api_requests": [ { "date": "2026-07-07", "count": 612 } ],
+      "posts_published": [ { "date": "2026-07-10", "count": 1 } ],
+      "contact_messages": [ { "date": "2026-07-12", "count": 2 } ],
+      "expenses": [ { "date": "2026-07-07", "count": 3, "total": "45.20" } ]
+    }
   }
 }
 ```
 
-`page_views_total`/`api_requests_total` are all-time totals — for a windowed breakdown or top pages/endpoints, use
-[8.9](#89-analytics) instead.
+Every field except `timeseries` is an all-time total, unaffected by `?since=`/`?until=` — for a windowed
+breakdown of page views/API requests specifically, or top pages/endpoints, use [8.9](#89-analytics) instead.
+`active_clients` counts only currently-active registrations (a revoked client, section 8.7, doesn't count).
+`expenses_count`/`expenses_total` mirror [8.14](#814-expenses)'s reporting — `expenses_total` is every expense
+ever recorded, converted into `USD` (this deployment's fixed base currency) for one comparable figure.
+
+`timeseries` is a day-bucketed trend, over `?since=&until=` if given, defaulting to **the last 30 days** if
+neither is given at all (an explicitly partial range — just `?since=` or just `?until=` — is honored as-is, same
+as every other date-ranged report in this API). `link_clicks` has no time series: `links.click_count` is a
+running total with no per-click timestamp ever recorded, so a historical daily breakdown isn't derivable from the
+schema. Empty series serialize as `null`, not `[]`, matching [8.9](#89-analytics)'s own daily-series endpoints.
 
 ### 8.11 Audit Log
 
@@ -1136,59 +1244,213 @@ recorded for *every* Bearer-token-authenticated request, not just admin actions 
 
 ### 8.12 Media Library
 
+Removed — see section 7.9.
+
+### 8.13 Request Logs
+
 ```
-GET    /admin/media?limit=&cursor=&category=
-POST   /admin/media                 (multipart/form-data)
-GET    /admin/media/{id}
-PATCH  /admin/media/{id}
-DELETE /admin/media/{id}
+GET /admin/request-logs?limit=&cursor=&method=&status_min=&status_max=&path=&request_id=
 ```
 
-Uploads, and manages metadata for, images/documents/archives referenced elsewhere (a post's `cover_image_url`, an
-embedded image in Markdown content, an attached document). Retrieving the actual file bytes is a *different,
-public* route — [`GET /media/{filename}`](#79-media), section 7.9 — since that one has to work from an `<img>` tag
-or a plain browser request, neither of which can send admin credentials.
+The detailed request/response log every `/api/v1` call (public and admin alike) writes one row to — a correlation
+id (see section 3), full method, path, query, status, timing, IP, user-agent, and (size-capped at 8 KiB, sensitive
+fields/headers redacted — see below) request/response headers and bodies. Distinct from, and far more detailed
+than, [8.9](#89-analytics)'s `api-requests` reports, which only ever cover fast aggregate metrics (totals, top
+endpoints, daily series) with no payload data at all; this exists specifically for troubleshooting a *specific*
+request. Cursor-paginated (`meta` envelope), newest first.
 
-**`GET /admin/media`** — cursor-paginated (`meta` envelope), newest-first. `category` optionally filters to
-`image`, `document`, or `archive`.
+| Parameter    | Type    | Default | Notes |
+|--------------|---------|---------|-------|
+| `limit`      | integer | `10`    | Clamped `[1,100]` |
+| `cursor`     | string  | —       | Pagination cursor |
+| `method`     | string  | —       | Exact match, e.g. `POST` |
+| `status_min` | integer | —       | e.g. `400` to see only errors |
+| `status_max` | integer | —       | e.g. `599` alongside `status_min=400` |
+| `path`       | string  | —       | Substring match against the literal request path (not the route pattern) |
+| `request_id` | string  | —       | Exact match — the direct "look up this one request" path, given the id from an `X-Request-Id` response header or an error's `request_id` (section 3) |
 
 ```json
 {
   "data": [
-    { "id": 1, "filename": "31fd97194bb86207cad3f5a88afd2369.png", "original_filename": "diagram.png", "mime_type": "image/png", "category": "image", "size_bytes": 48213, "alt_text": "architecture diagram", "url": "/media/31fd97194bb86207cad3f5a88afd2369.png", "created_at": "2026-08-04T12:10:49Z" }
+    {
+      "id": 42,
+      "created_at": "2026-08-05T04:14:46Z",
+      "request_id": "de578d47b59da10d",
+      "method": "POST",
+      "path": "/api/v1/admin/login",
+      "route_pattern": "/api/v1/admin/login",
+      "query": "",
+      "status_code": 401,
+      "duration_ms": 74,
+      "ip_address": "203.0.113.7",
+      "user_agent": "curl/7.81.0",
+      "client_id": null,
+      "request_headers": { "Content-Type": ["application/json"], "User-Agent": ["curl/7.81.0"] },
+      "request_body": "{\"identifier\":\"nope\",\"password\":\"[REDACTED]\"}",
+      "response_headers": { "Content-Type": ["application/json; charset=utf-8"] },
+      "response_body": "{\"error\":{\"code\":\"UNAUTHORIZED\",\"field\":null,\"message\":\"Incorrect username/email or password.\",\"request_id\":\"de578d47b59da10d\"}}"
+    }
   ],
   "meta": { "total": 1, "limit": 10, "next_cursor": null, "prev_cursor": null }
 }
 ```
 
-**`POST /admin/media`** — `multipart/form-data`, not JSON (the only endpoint in this API that isn't):
+**Redaction:** `Authorization`, `Cookie`, `Set-Cookie`, and `X-Client-Key` headers are always replaced with
+`"[REDACTED]"`; JSON body fields named (case-insensitively) `password`, `current_password`, `new_password`,
+`token`, `access_token`, `refresh_token`, `secret`, `api_key`, `client_key`, `authorization`, or `cookie` are
+replaced the same way, at any nesting depth. This means the one-time plaintext key in
+`POST /admin/clients`'s response (section 8.7) is redacted here — this log is never a second place to recover it.
+A non-JSON body (or a body that fails to parse) is left as-is, capped to size only.
 
-| Form field | Required | Notes |
-|------------|----------|-------|
-| `file`     | yes      | The upload itself |
-| `alt_text` | no       | Accessibility/caption text — the only field ever editable after upload |
+**What's never captured at all:** any `multipart/form-data` request body — logged as a fixed placeholder string
+instead of being buffered.
 
-The **file extension** (case-insensitive), not the browser-supplied `Content-Type` or the bytes themselves, is the
-sole authority on what's accepted and what category/MIME type it's filed under — an intentionally fixed allow-list
-that never includes anything that could plausibly execute:
+**Retention:** pruned by the same job and the same `ANALYTICS_RETENTION_DAYS` window (Appendix B) as
+`analytics_pageviews`/`analytics_api_requests`, since it's the same class of high-volume, time-bounded
+operational data.
 
-| Category   | Extensions |
-|------------|------------|
-| `image`    | `.jpg` `.jpeg` `.png` `.gif` `.webp` `.svg` |
-| `document` | `.pdf` `.doc` `.docx` `.xls` `.xlsx` `.ppt` `.pptx` `.txt` `.csv` `.md` `.json` |
-| `archive`  | `.zip` |
+### 8.14 Expenses
 
-`400 VALIDATION_ERROR` (`field: "file"`) for anything else. The file is stored under a random, server-generated
-name (never the original name, never anything path-derived from client input) — see `filename` vs
-`original_filename` on the response. `413 PAYLOAD_TOO_LARGE` if the upload exceeds `MEDIA_MAX_UPLOAD_BYTES`
-(Appendix B) — a larger, separately-enforced cap than every other (JSON) endpoint's `MAX_REQUEST_BODY_BYTES`.
-**`201 Created`** with the full `Media` object on success.
+Personal expense tracking — **admin-only, no public equivalent at all** (unlike Posts/Projects/Profile), since
+this is private financial data. Amounts are recorded in one of a small, fixed set of currencies (`USD`, `JPY`,
+`IDR` — matching this deployment's actual context: USD-denominated income, JPY-denominated living costs in Japan,
+IDR-denominated home-country expenses) and converted for reporting using manually-maintained exchange rates —
+there's no live FX API integration.
 
-**`PATCH /admin/media/{id}`** — `{"alt_text": "..."}`. `alt_text` is the only field this endpoint ever changes;
-everything else describes the uploaded file itself and is immutable after upload. **`DELETE /admin/media/{id}`** —
-**`204`**, **`404`** on an unknown id — removes both the database record and the underlying stored file. A hard
-delete: nothing tracks media usage across posts/projects, so deleting a file that's still referenced elsewhere
-will break that reference (the same way deleting a `Post` referenced by an external bookmark just 404s it).
+```
+GET    /admin/expenses?limit=&cursor=&category_id=&currency=&payment_method=&is_recurring=&since=&until=&sort=
+GET    /admin/expenses/{id}
+POST   /admin/expenses
+PATCH  /admin/expenses/{id}
+DELETE /admin/expenses/{id}
+GET    /admin/expenses/summary?since=&until=&target_currency=
+GET    /admin/expenses/by-category?since=&until=&target_currency=
+GET    /admin/expenses/monthly?since=&until=&target_currency=
+GET    /admin/expenses/exchange-rates
+PATCH  /admin/expenses/exchange-rates/{currency}
+GET    /admin/expense-categories
+POST   /admin/expense-categories
+PATCH  /admin/expense-categories/{id}
+DELETE /admin/expense-categories/{id}
+```
+
+**`POST /admin/expenses`:**
+
+```json
+{
+  "amount": "50.00",
+  "currency": "USD",
+  "category_id": 1,
+  "description": "Groceries",
+  "payment_method": "card",
+  "expense_date": "2026-08-01",
+  "is_recurring": false,
+  "recurrence_interval": null
+}
+```
+
+Every monetary field in this section (`amount`, `rate_to_usd`, and every `total`/`total_by_currency`/`grand_total`
+figure below) is a **JSON string**, not a number — e.g. `"amount": "50.00"`, not `"amount": 50.00` — so it
+round-trips through JSON with the exact digits Postgres' `NUMERIC` column stores, instead of going through a
+binary floating-point type that can't represent most base-10 amounts exactly. Parse it with a decimal type on the
+client side (not `parseFloat`/`Number()`) if you need to do further arithmetic on it.
+
+| Field                  | Required | Validation |
+|-------------------------|----------|----------------------------------------------------------|
+| `amount`                | yes      | A decimal string, greater than zero |
+| `currency`               | yes      | One of `USD`, `JPY`, `IDR` |
+| `category_id`            | yes      | Must reference an existing expense category |
+| `description`            | no       | Free text, default empty |
+| `payment_method`         | no       | One of `cash`, `card`, `bank_transfer`, `e_wallet`, `other`; default `other` |
+| `expense_date`           | yes      | `YYYY-MM-DD` |
+| `is_recurring`           | no       | Default `false` |
+| `recurrence_interval`    | conditionally | Required (one of `daily`/`weekly`/`monthly`/`yearly`) when `is_recurring` is `true`; forced to `null` server-side whenever `is_recurring` is `false`, regardless of what's sent |
+
+**`201 Created`** with the full `Expense` (includes `category_name`, joined for display convenience). **`PATCH
+/admin/expenses/{id}`** — same fields, all optional, partial update; setting `is_recurring` to `false` always
+clears `recurrence_interval`, even if a value for it is also present in the same request body. **`DELETE
+/admin/expenses/{id}`** — **`204`**, **`404`** on an unknown id.
+
+**Reporting (8.14.1–8.14.3):** all three share `since`/`until` (`YYYY-MM-DD`, either bound optional) and
+`target_currency` (default `USD`) query parameters. Every expense in range is converted into `target_currency`
+using the exchange rates below (`converted = amount / rate_to_usd(expense's currency) * rate_to_usd(target)`)
+before being aggregated, so results are directly comparable regardless of which currency each expense was
+originally recorded in.
+
+- **`GET /admin/expenses/summary`** — `{ "total_by_currency": {"USD": "50", "JPY": "3000"}, "grand_total": {"currency": "USD", "amount": "69.97"}, "count": 2 }`.
+  `total_by_currency` is the raw, unconverted breakdown (nothing lost to rate approximation); `grand_total` is the
+  single converted figure.
+- **`GET /admin/expenses/by-category`** — `[{"category_id": 1, "category_name": "Food", "total": "50", "count": 1}, ...]`, converted totals, ranked highest first.
+- **`GET /admin/expenses/monthly`** — `[{"month": "2026-08", "total": "69.97"}, ...]`, converted totals bucketed by calendar month, ascending.
+
+**`GET /admin/expenses/exchange-rates`** — every currency's `rate_to_usd` ("how many units of this currency equal
+1 USD"): `[{"currency": "JPY", "rate_to_usd": "150.25", "updated_at": "..."}, ...]`. **`PATCH
+/admin/expenses/exchange-rates/{currency}`** — `{"rate_to_usd": "150.25"}`; `rate_to_usd` must be greater than
+zero. `USD` itself is the fixed base every rate quotes against and can never be changed —
+`400 VALIDATION_ERROR` on `currency` if attempted.
+
+**Categories** (`/admin/expense-categories`) are a real admin-managed registry, not free-text tags — `name` must
+be unique (`409 CONFLICT` on a duplicate) and 1–100 characters. **`DELETE
+/admin/expense-categories/{id}`** returns **`409 CONFLICT`** if any expense still references it — reassign or
+delete those expenses first; there's no cascading delete for financial records.
+
+### 8.15 Application Logs
+
+```
+GET /admin/app-logs?limit=&cursor=&level=&message=
+```
+
+This process's own structured log output (`internal/platform/logger.WithAppLogRepo`) — startup messages, panics,
+background-job failures, and every ad hoc `logger.Error`/`logger.Info` call throughout the codebase — made
+queryable instead of only ever visible in stdout or a hosting platform's own log viewer. Every record this
+service's logger emits gets a row here, in parallel with (never instead of) its normal stdout write, so a
+database outage never costs the ability to watch logs directly on the host. Cursor-paginated (`meta` envelope),
+newest first.
+
+Distinct from [8.13](#813-request-logs) (one row per HTTP request/response cycle, headers and bodies) and
+[8.11](#811-audit-log) (security events only): this is the process's own general-purpose operational log. There's
+deliberate overlap with 8.13 — `RequestLogger`'s one-line-per-request log also lands here — rather than trying to
+suppress it at write time, matching this schema's existing "capture broadly, filter at read time" convention.
+
+| Parameter | Type    | Default | Notes |
+|-----------|---------|---------|-------|
+| `limit`   | integer | `10`    | Clamped `[1,100]` |
+| `cursor`  | string  | —       | Pagination cursor |
+| `level`   | string  | —       | Exact match: `DEBUG`, `INFO`, `WARN`, or `ERROR` |
+| `message` | string  | —       | Substring match against the log message |
+
+```json
+{
+  "data": [
+    {
+      "id": 42,
+      "created_at": "2026-08-05T04:14:46Z",
+      "level": "ERROR",
+      "message": "admin stats: expense summary failed",
+      "attrs": { "error": "pq: connection reset by peer" },
+      "source": "admin_usecase.go:157"
+    }
+  ],
+  "meta": { "total": 1, "limit": 10, "next_cursor": null, "prev_cursor": null }
+}
+```
+
+`attrs` is whatever structured key-value fields the log call itself included (`logger.Error("...", "error", err)`
+→ `{"error": "..."}`); `source` is `file.go:line` of the call site when the runtime could resolve it, `""`
+otherwise. Values are never redacted the way 8.13's headers/bodies are — this is the operator's own code logging
+its own internal state, not caller-supplied request data, so there's no equivalent password/token risk to guard
+against; avoid logging secrets directly in application code regardless, the same rule that already applies to
+stdout today.
+
+**A pagination caveat specific to this endpoint:** the cursor is a plain offset (Appendix C's `pagination`
+package, shared by every list endpoint in this API), which can drift under concurrent inserts between two page
+fetches of the *same* resource. Every other resource is unaffected in practice, but reading this endpoint is
+guaranteed to insert a new row into `app_logs` itself (the request log line for that very `GET` call) — so paging
+through more than one page in quick succession can show a row shift or a brief overlap at the page boundary. This
+is a property of the API being consistently logged, not data loss.
+
+**Retention:** pruned by the same job and the same `ANALYTICS_RETENTION_DAYS` window (Appendix B) as
+`request_logs`/`analytics_pageviews`/`analytics_api_requests`.
 
 ---
 
@@ -1220,13 +1482,6 @@ fully public.
 | `POST` | `/public/contact`           | —      | anonymous + 5/hour contact-specific |
 | `POST` | `/public/analytics/pageviews` | —    | anonymous |
 | `GET`  | `/public/menu`              | client | anonymous/authenticated |
-
-### Media (outside `/api/v1`)
-
-| Method | Path                | Auth | Rate-limit tier |
-|--------|---------------------|------|-------------------|
-| `GET`  | `/media/{filename}` | —    | none — not under `/api/v1`, see section 7.9 |
-| `HEAD` | `/media/{filename}` | —    | none — not under `/api/v1`, see section 7.9 |
 
 ### Admin (`/api/v1/admin`)
 
@@ -1283,11 +1538,22 @@ fully public.
 | `GET`    | `/admin/analytics/api-requests/top-endpoints` | ✓ | authenticated |
 | `GET`    | `/admin/analytics/api-requests/daily`   | ✓    | authenticated |
 | `GET`    | `/admin/analytics/api-requests/logs`    | ✓    | authenticated |
-| `GET`    | `/admin/media`                          | ✓    | authenticated |
-| `POST`   | `/admin/media`                          | ✓    | authenticated |
-| `GET`    | `/admin/media/{id}`                     | ✓    | authenticated |
-| `PATCH`  | `/admin/media/{id}`                     | ✓    | authenticated |
-| `DELETE` | `/admin/media/{id}`                     | ✓    | authenticated |
+| `GET`    | `/admin/request-logs`                   | ✓    | authenticated |
+| `GET`    | `/admin/expenses`                       | ✓    | authenticated |
+| `GET`    | `/admin/expenses/summary`               | ✓    | authenticated |
+| `GET`    | `/admin/expenses/by-category`           | ✓    | authenticated |
+| `GET`    | `/admin/expenses/monthly`               | ✓    | authenticated |
+| `GET`    | `/admin/expenses/{id}`                  | ✓    | authenticated |
+| `POST`   | `/admin/expenses`                       | ✓    | authenticated |
+| `PATCH`  | `/admin/expenses/{id}`                  | ✓    | authenticated |
+| `DELETE` | `/admin/expenses/{id}`                  | ✓    | authenticated |
+| `GET`    | `/admin/expenses/exchange-rates`        | ✓    | authenticated |
+| `PATCH`  | `/admin/expenses/exchange-rates/{currency}` | ✓ | authenticated |
+| `GET`    | `/admin/expense-categories`             | ✓    | authenticated |
+| `POST`   | `/admin/expense-categories`             | ✓    | authenticated |
+| `PATCH`  | `/admin/expense-categories/{id}`        | ✓    | authenticated |
+| `DELETE` | `/admin/expense-categories/{id}`        | ✓    | authenticated |
+| `GET`    | `/admin/app-logs`                       | ✓    | authenticated |
 
 ---
 
@@ -1322,9 +1588,8 @@ required; everything else has a working default or is an opt-in group.
 | `HTTP_READ_TIMEOUT_SECONDS`      | no       | `15`                            | `http.Server` read timeout |
 | `HTTP_WRITE_TIMEOUT_SECONDS`     | no       | `15`                            | `http.Server` write timeout |
 | `HTTP_IDLE_TIMEOUT_SECONDS`      | no       | `60`                            | `http.Server` idle timeout |
+| `REQUEST_TIMEOUT_SECONDS`        | no       | `10`                            | Per-request context deadline for `/api/v1` (cancels downstream DB queries) |
 | `MAX_REQUEST_BODY_BYTES`         | no       | `2097152` (2 MiB)               | Hard cap on every JSON request body |
-| `MEDIA_STORAGE_DIR`               | no       | `./uploads`                    | Local-disk root for uploaded files — must be a persistent volume in any non-ephemeral deployment |
-| `MEDIA_MAX_UPLOAD_BYTES`          | no       | `15728640` (15 MiB)             | Hard cap on `POST /admin/media`'s body specifically, separate from `MAX_REQUEST_BODY_BYTES` above |
 
 A `.env` file in the working directory loads automatically via `godotenv` if present; in production, real
 environment variables take precedence.
@@ -1343,76 +1608,89 @@ this backend's default server-side prepared statements.
 ## Appendix C: Database Schema
 
 Plain Postgres throughout. Migrations are split one-table-(or-tightly-coupled-group)-per-file under `migrations/`
-— `000001`–`000013` and `000018` create schema, `000014`–`000017` seed data — rather than kept as a handful of
-large files; each is the actual source of truth, this appendix is a readable summary kept in sync whenever the
-schema changes.
+— `000001`–`000016`, `000021`, and `000023` create schema, `000017`–`000020` and `000022` seed data (schema always
+precedes the seed data that depends on it — the translations tables in particular must exist before any
+post/project/profile seed can populate them, and `exchange_rates`/`expense_categories` before `000022`'s seed) —
+rather than kept as a handful of large files; each is the actual source of truth, this appendix is a readable
+summary kept in sync whenever the schema changes.
 
 ### Relationships
 
-Only the tag-normalization join tables have foreign keys; every other table is independent:
-
 ```
-post_tags.post_id       → posts.id       (ON DELETE CASCADE)
-post_tags.tag_id        → tags.id        (ON DELETE CASCADE)
-project_tags.project_id → projects.id    (ON DELETE CASCADE)
-project_tags.tag_id     → tags.id        (ON DELETE CASCADE)
+post_tags.post_id            → posts.id              (ON DELETE CASCADE)
+post_tags.tag_id             → tags.id                (ON DELETE CASCADE)
+project_tags.project_id      → projects.id            (ON DELETE CASCADE)
+project_tags.tag_id          → tags.id                (ON DELETE CASCADE)
+post_translations.post_id    → posts.id               (ON DELETE CASCADE)
+project_translations.project_id → projects.id         (ON DELETE CASCADE)
+profile_translations.profile_id → profile.id          (ON DELETE CASCADE)
+menu_items.parent_id         → menu_items.id           (ON DELETE CASCADE, self-referencing)
+expenses.category_id         → expense_categories.id  (ON DELETE RESTRICT)
 ```
 
-`analytics_api_requests.client_id` and `admin_auth_audit_log.session_id` deliberately have **no** foreign key —
-neither log must ever be at risk of losing its own history to a change on the thing it references (a client being
-revoked, a session being deleted on logout).
+`analytics_api_requests.client_id`, `request_logs.client_id`, and `admin_auth_audit_log.session_id` deliberately
+have **no** foreign key — none of these logs must ever be at risk of losing its own history to a change on the
+thing it references (a client being revoked, a session being deleted on logout).
 
-### posts
+### posts / post_translations
+
+`posts` holds only locale-independent fields — every translatable field lives in `post_translations` instead
+(one row per (post, locale)), see section 5's Localization subsection.
 
 | Column                 | Type          | Constraints / Default | Notes |
 |------------------------|---------------|--------------------------|-------|
 | `id`                   | `BIGSERIAL`   | `PRIMARY KEY`            | Internal only — the API's identifier is `slug` |
-| `slug`                 | `TEXT`        | `NOT NULL UNIQUE`        | |
-| `title`                | `TEXT`        | `NOT NULL`               | |
-| `excerpt`               | `TEXT`        | `NOT NULL`               | |
-| `content`               | `TEXT`        | `NOT NULL`               | Raw Markdown |
-| `content_html`          | `TEXT`        | `NOT NULL`               | Rendered server-side |
+| `slug`                 | `TEXT`        | `NOT NULL UNIQUE`        | Shared across every locale — one URL regardless of language |
 | `published_at`          | `DATE`        | nullable                 | Null for a draft with no date yet |
-| `reading_time_minutes`  | `INT`         | `NOT NULL`               | Computed server-side |
 | `status`                | `TEXT`        | `NOT NULL DEFAULT 'published'`, `CHECK IN ('draft','scheduled','published')` | |
 | `cover_image_url`       | `TEXT`        | `NOT NULL DEFAULT ''`    | |
 | `created_at`/`updated_at` | `TIMESTAMPTZ` | `NOT NULL DEFAULT now()` | |
-| `search_vector`         | `tsvector`    | `GENERATED ALWAYS AS (...) STORED` | Weighted: title (A) > excerpt (B) > content (C) |
 
-Indexes: `published_at DESC`; `status`; GIN on `search_vector`; GIN on `title` (`gin_trgm_ops`, `pg_trgm` — backs
-[7.1.3](#713-search-posts-client-key-or-admin)'s fuzzy fallback).
+Indexes: `published_at DESC`; `status`.
 
-### projects
+`post_translations(id, post_id, locale TEXT CHECK IN ('en','ja','id'), title, excerpt, content, content_html,
+reading_time_minutes, search_vector, UNIQUE(post_id, locale))`. `search_vector` is a plain `tsvector` column
+(**not** `GENERATED`, unlike this table's pre-i18n predecessor) maintained by a `BEFORE INSERT/UPDATE` trigger,
+weighted title (A) > excerpt (B) > content (C) — a generated column can't be used here because the text-search
+config itself varies per row (`english` for `locale = 'en'`, `simple` — tokenize only, no stemming — for
+`ja`/`id`, since Postgres ships no built-in Japanese/Indonesian config) and casting a conditional expression to
+`regconfig` isn't `IMMUTABLE`, which `GENERATED ALWAYS AS` requires. Indexed on `post_id`; GIN on `search_vector`;
+GIN on `title` (`gin_trgm_ops`, `pg_trgm` — backs [7.1.3](#713-search-posts-client-key-or-admin)'s fuzzy fallback,
+`en` rows only in practice — trigram similarity against a whole, space-free CJK title scores too low to clear the
+threshold tuned for English).
 
-| Column             | Type          | Constraints / Default | Notes |
-|---------------------|---------------|---------------------------|-------|
-| `id`                | `BIGSERIAL`   | `PRIMARY KEY`             | |
-| `slug`              | `TEXT`        | `NOT NULL UNIQUE`         | |
-| `title`             | `TEXT`        | `NOT NULL`                | |
-| `description`       | `TEXT`        | `NOT NULL`                | |
-| `long_description`  | `JSONB`       | `NOT NULL DEFAULT '[]'`   | Array of strings |
-| `role`              | `TEXT`        | `NOT NULL`                | |
-| `year`              | `INT`         | `NOT NULL`                | |
-| `featured`          | `BOOLEAN`     | `NOT NULL DEFAULT false`  | |
-| `links`             | `JSONB`       | `NOT NULL DEFAULT '{}'`   | `{live, repo}` |
-| `highlights`        | `JSONB`       | `NOT NULL DEFAULT '[]'`   | Array of strings |
-| `status`            | `TEXT`        | `NOT NULL DEFAULT 'active'`, `CHECK IN ('active','in-progress','archived')` | |
-| `search_vector`     | `tsvector`    | `GENERATED ALWAYS AS (...) STORED` | Weighted: title (A) > description (B) |
+### projects / project_translations
 
-Indexes: `year DESC`; `featured`; GIN on `search_vector`.
+Same base/translations split as posts.
+
+`projects(id, slug UNIQUE, year, featured DEFAULT false, links JSONB DEFAULT '{}', status DEFAULT 'active' CHECK
+IN ('active','in-progress','archived'), created_at, updated_at)`. Indexes: `year DESC`; `featured`.
+
+`project_translations(id, project_id, locale TEXT CHECK IN ('en','ja','id'), title, description,
+long_description JSONB DEFAULT '[]', role, highlights JSONB DEFAULT '[]', search_vector, UNIQUE(project_id,
+locale))`. `search_vector` is trigger-maintained the same way `post_translations`' is (title A, description B).
+Indexed on `project_id`; GIN on `search_vector`.
 
 ### tags / post_tags / project_tags
 
 `tags(id, name UNIQUE)` shared by both post/project join tables — one canonical row per name, no per-resource
-duplication. `post_tags(post_id, tag_id)` and `project_tags(project_id, tag_id)` are composite-PK join tables,
-each with an index on `tag_id` for the reverse lookup.
+duplication, and **not** translated (a tag name doubles as the `?tag=` filter value, so it stays one shared
+vocabulary across every locale). `post_tags(post_id, tag_id)` and `project_tags(project_id, tag_id)` are
+composite-PK join tables, each with an index on `tag_id` for the reverse lookup.
 
-### profile / profile_history
+### profile / profile_translations / profile_history
 
-`profile` is a singleton (`id SMALLINT PRIMARY KEY DEFAULT 1`, `CHECK (id = 1)`) with `name`, `title`, `location`,
-`website`, `tagline` as plain text columns and `bio`/`skills`/`experience`/`education`/`certifications`/`awards`/
-`volunteering`/`languages`/`interests` as `JSONB` arrays. `profile_history(id, changed_fields JSONB, changed_at)`
-is the append-only audit trail, indexed on `changed_at DESC`.
+`profile` is a singleton (`id SMALLINT PRIMARY KEY DEFAULT 1`, `CHECK (id = 1)`) holding only `website` — the one
+field with no language — plus `created_at`/`updated_at`. Every translatable field lives in `profile_translations`
+instead: one row per locale, each holding the *entire* profile content for that language (`name`, `title`,
+`location`, `tagline` as text; `bio`/`skills`/`experience`/`education`/`certifications`/`awards`/`volunteering`/
+`languages`/`interests` as `JSONB`) — unlike Post/Project, Profile is read/written as a whole rather than
+listed/searched, so there's no benefit to normalizing further than "one row per locale"
+(`profile_translations(id, profile_id, locale TEXT CHECK IN ('en','ja','id'), ..., UNIQUE(profile_id, locale))`,
+indexed on `profile_id`).
+
+`profile_history(id, locale TEXT CHECK IN ('en','ja','id'), changed_fields JSONB, changed_at)` is the append-only
+audit trail, indexed on `changed_at DESC`. `locale` records which `?lang=` a given `PATCH` was scoped to.
 
 ### links
 
@@ -1431,7 +1709,19 @@ and `path`.
 
 `analytics_api_requests(id, method, route_pattern, status_code, duration_ms, client_id, created_at)`, indexed on
 `created_at DESC`, `(method, route_pattern)`, and `client_id`. `client_id` (nullable, no FK) attributes a row to
-the registered client that authenticated the call, if any.
+the registered client that authenticated the call, if any. Aggregate metrics only — see `request_logs` below for
+the detailed request/response record.
+
+### request_logs
+
+`request_logs(id, created_at, request_id, method, path, route_pattern, query, status_code, duration_ms, ip_address,
+user_agent, client_id, request_headers JSONB, request_body TEXT, response_headers JSONB, response_body TEXT)`,
+indexed on `created_at DESC`, `status_code`, and (partially, excluding `''`) `request_id`. Backs
+[8.13](#813-request-logs). Written for every `/api/v1` request (see `middleware.RequestResponseLog`), sensitive
+header/body fields redacted before the row is ever built — see 8.13's Redaction note. `request_id` is the same
+correlation id assigned by `middleware.RequestID` and echoed on every response's `X-Request-Id` header (section
+3) — carried on this row specifically so `?request_id=` (8.13) can jump straight to it. Same retention job and
+`ANALYTICS_RETENTION_DAYS` window as `analytics_pageviews`/`analytics_api_requests`.
 
 ### admin_credentials
 
@@ -1442,10 +1732,10 @@ Bootstrapped from `ADMIN_USERNAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD` on first boot 
 ### admin_sessions
 
 `admin_sessions(id, created_at, expires_at, last_seen DEFAULT now(), ip_address DEFAULT '', user_agent DEFAULT '')`,
-indexed on `expires_at`. `last_seen` is bumped on every authenticated request using this session — what
-`SESSION_IDLE_TIMEOUT_MINUTES` is measured against; `ip_address`/`user_agent` are metadata only, never used to
-authorize anything. No dedicated retention job — expired/idle rows are opportunistically deleted on the next
-login.
+indexed on `expires_at` and `last_seen` (the latter backs the idle-timeout branch of the session-reaper query).
+`last_seen` is bumped on every authenticated request using this session — what `SESSION_IDLE_TIMEOUT_MINUTES` is
+measured against; `ip_address`/`user_agent` are metadata only, never used to authorize anything. No dedicated
+retention job — expired/idle rows are opportunistically deleted on the next login.
 
 ### admin_auth_audit_log
 
@@ -1455,9 +1745,10 @@ kept, unlike the analytics tables.
 
 ### api_clients
 
-`api_clients(id, name, key_hash UNIQUE, is_active DEFAULT true, created_at, last_used_at)`. `key_hash` is
-`SHA-256(key)`, hex-encoded — plaintext never stored, returned exactly once by
-[`POST /admin/clients`](#87-api-clients). The `UNIQUE` constraint on `key_hash` is what makes
+`api_clients(id, name, key_hash UNIQUE, is_active DEFAULT true, created_at, last_used_at)`, indexed on
+`created_at DESC` (backs `GET /admin/clients`' pagination). `key_hash` is `SHA-256(key)`, hex-encoded — plaintext
+never stored, returned exactly once by [`POST /admin/clients`](#87-api-clients) (and redacted from
+`request_logs`' response body, see 8.13). The `UNIQUE` constraint on `key_hash` is what makes
 [2.5](#25-registered-client-key-public-reads)'s check a single indexed lookup.
 
 ### menu_items
@@ -1466,14 +1757,33 @@ kept, unlike the analytics tables.
 CASCADE, section DEFAULT '', label, path, icon DEFAULT '', sort_order DEFAULT 0, is_visible DEFAULT true,
 created_at, updated_at)`, indexed on `(menu_group, sort_order)` and `parent_id`. Backs
 [7.8](#78-menu)/[8.8](#88-menu). `parent_id` is a self-referencing FK backing one level of submenu nesting — depth
-beyond one level is rejected application-side (`MenuUsecase.validateParent`), not by the schema. No retention
+beyond one level is rejected application-side (`MenuUsecase.validateParent`), not by the schema. Not translated —
+menu labels are admin-sidebar navigation text, out of scope for this deployment's localization. No retention
 job — expected to stay small, admin-managed.
 
-### media
+### exchange_rates / expense_categories / expenses
 
-`media(id, filename UNIQUE, original_filename, mime_type, category, size_bytes, alt_text, created_at)`, indexed on
-`category` and `created_at DESC`. Backs [7.9](#79-media)/[8.12](#812-media-library). Purely an index over files that
-actually live in `MediaStorage` (local disk by default — `internal/platform/storage`); `filename` is the random
-name the file is stored/served under, `original_filename` is kept only for display/download purposes. No retention
-job — deletion is always explicit (`DELETE /admin/media/{id}`), never time-based, since a file could still be
-referenced from a post's content indefinitely.
+Backs [8.14](#814-expenses). `exchange_rates(currency TEXT PRIMARY KEY CHECK IN ('USD','JPY','IDR'), rate_to_usd
+NUMERIC(18,6), updated_at)` — how many units of `currency` equal 1 `USD` (the fixed base). Manually maintained,
+seeded with placeholder values by `000022_seed_expenses`; `USD`'s own row is pinned at exactly `1` and never
+updated (application-enforced, not a `CHECK`).
+
+`expense_categories(id, name UNIQUE, created_at)` — a real admin-managed registry, like Menu, not a free-text tag.
+
+`expenses(id, amount NUMERIC(14,2) CHECK (amount > 0), currency TEXT CHECK IN ('USD','JPY','IDR'), category_id
+BIGINT REFERENCES expense_categories(id) ON DELETE RESTRICT, description DEFAULT '', payment_method DEFAULT
+'other' CHECK IN ('cash','card','bank_transfer','e_wallet','other'), expense_date DATE, is_recurring DEFAULT
+false, recurrence_interval TEXT CHECK IN ('daily','weekly','monthly','yearly'), created_at, updated_at)`, with
+`CHECK (recurrence_interval IS NULL OR is_recurring)` — a one-off expense never carries a schedule. `ON DELETE
+RESTRICT` on `category_id` means a category still referenced by any expense can't be deleted at the database
+level either, matching `ExpenseCategoryUsecase.Delete`'s pre-check (section 8.14). Indexed on `expense_date DESC`,
+`category_id`, and `currency`. No retention job — expected to stay a manageable size for personal use, and
+deletion here is a meaningful data-loss event that should always be explicit.
+
+### app_logs
+
+`app_logs(id, created_at, level TEXT CHECK IN ('DEBUG','WARN','INFO','ERROR'), message TEXT, attrs JSONB, source
+TEXT DEFAULT '')`, indexed on `created_at DESC` and `level`. Backs [8.15](#815-application-logs). Written for
+every record this process's own logger emits (see `internal/platform/logger.WithAppLogRepo`), in parallel with
+its normal stdout write — not just HTTP-request-shaped log lines, unlike `request_logs`. Same retention job and
+`ANALYTICS_RETENTION_DAYS` window as `analytics_pageviews`/`analytics_api_requests`/`request_logs`.

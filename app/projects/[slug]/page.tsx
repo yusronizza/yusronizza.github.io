@@ -9,6 +9,7 @@ import { createMetadata } from "@/lib/seo/metadata";
 import { breadcrumbSchema, projectSchema } from "@/lib/seo/schema";
 import { getProject } from "@/lib/api/projects";
 import { ApiError } from "@/lib/api/client";
+import { getLang } from "@/lib/get-lang";
 
 export const dynamic = "force-dynamic";
 
@@ -33,10 +34,10 @@ export async function generateMetadata({
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
-  const { slug } = await params;
+  const [{ slug }, lang] = await Promise.all([params, getLang()]);
   let project;
   try {
-    project = await getProject(slug);
+    project = await getProject(slug, lang);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
     throw err;

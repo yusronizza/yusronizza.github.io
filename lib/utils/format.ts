@@ -1,4 +1,5 @@
 export function formatDate(dateString: string): string {
+  // Bare ISO dates (YYYY-MM-DD) are parsed as UTC midnight; appending local time prevents a day-shift in negative-offset timezones.
   const date = new Date(`${dateString}T00:00:00`);
   return date.toLocaleDateString("en-US", {
     year: "numeric",

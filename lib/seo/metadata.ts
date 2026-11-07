@@ -24,7 +24,7 @@ export function createMetadata({
   imageUrl,
 }: CreateMetadataOptions): Metadata {
   const url = `${siteConfig.url}${path}`;
-  const resolvedTitle = isRoot ? title : `${title} | ${siteConfig.shortName}`;
+  const resolvedTitle = isRoot ? title : `${title} | ${siteConfig.name}`;
 
   return {
     // For the homepage we omit `title` so the layout's `default` is used,

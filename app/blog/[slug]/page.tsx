@@ -8,6 +8,7 @@ import { createMetadata } from "@/lib/seo/metadata";
 import { blogPostingSchema, breadcrumbSchema } from "@/lib/seo/schema";
 import { getPost } from "@/lib/api/posts";
 import { ApiError } from "@/lib/api/client";
+import { getLang } from "@/lib/get-lang";
 import { formatDate } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
@@ -37,10 +38,10 @@ export async function generateMetadata({
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const { slug } = await params;
+  const [{ slug }, lang] = await Promise.all([params, getLang()]);
   let post;
   try {
-    post = await getPost(slug);
+    post = await getPost(slug, lang);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
     throw err;

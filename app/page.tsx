@@ -9,7 +9,7 @@ import { FadeIn } from "@/components/ui/fade-in";
 import { createMetadata } from "@/lib/seo/metadata";
 import { siteConfig } from "@/lib/config/site";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = createMetadata({
   title: siteConfig.defaultTitle,

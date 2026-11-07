@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { apiFetch, buildUrl } from "./client";
 import type { PaginationMeta, Post, PostSummary } from "@/lib/domain/types";
+import { DEFAULT_LANG } from "@/lib/i18n";
 
 type RawPostSummary = {
   slug: string;
@@ -11,6 +12,8 @@ type RawPostSummary = {
   reading_time_minutes: number;
   status: string;
   cover_image_url: string;
+  locale: string;
+  available_locales: string[];
 };
 
 type RawPost = RawPostSummary & {
@@ -34,6 +37,8 @@ function toPostSummary(raw: RawPostSummary): PostSummary {
     readingTimeMinutes: raw.reading_time_minutes,
     status: raw.status as PostSummary["status"],
     coverImageUrl: raw.cover_image_url,
+    locale: raw.locale,
+    availableLocales: raw.available_locales,
   };
 }
 
@@ -59,6 +64,7 @@ export type PostsParams = {
   tag?: string;
   sort?: string;
   status?: string;
+  lang?: string;
 };
 
 export type PostsPage = {
@@ -73,13 +79,14 @@ export async function getPosts(params?: PostsParams): Promise<PostsPage> {
   if (params?.tag) qs.set("tag", params.tag);
   if (params?.sort) qs.set("sort", params.sort);
   if (params?.status) qs.set("status", params.status);
+  if (params?.lang) qs.set("lang", params.lang);
 
   const res = await apiFetch<{ data: RawPostSummary[]; meta: RawMeta }>(buildUrl("/public/posts", qs));
   return { data: res.data.map(toPostSummary), meta: toMeta(res.meta) };
 }
 
-export const getPost = cache(async (slug: string): Promise<Post> => {
-  const res = await apiFetch<{ data: RawPost }>(`/public/posts/${slug}`);
+export const getPost = cache(async (slug: string, lang = DEFAULT_LANG): Promise<Post> => {
+  const res = await apiFetch<{ data: RawPost }>(`/public/posts/${slug}?lang=${lang}`);
   return toPost(res.data);
 });
 
@@ -87,6 +94,7 @@ export type SearchPostsParams = {
   q: string;
   limit?: number;
   cursor?: string;
+  lang?: string;
 };
 
 export async function searchPosts(params: SearchPostsParams): Promise<PostsPage> {
@@ -94,10 +102,18 @@ export async function searchPosts(params: SearchPostsParams): Promise<PostsPage>
   qs.set("q", params.q);
   if (params.limit !== undefined) qs.set("limit", String(params.limit));
   if (params.cursor) qs.set("cursor", params.cursor);
+  if (params.lang) qs.set("lang", params.lang);
 
   const res = await apiFetch<{ data: RawPostSummary[]; meta: RawMeta }>(
     buildUrl("/public/posts/search", qs)
   );
   return { data: res.data.map(toPostSummary), meta: toMeta(res.meta) };
+}
+
+export type PostTag = { tag: string; count: number };
+
+export async function getTags(): Promise<PostTag[]> {
+  const res = await apiFetch<{ data: PostTag[] }>("/public/posts/tags");
+  return res.data;
 }
 
