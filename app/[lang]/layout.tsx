@@ -121,8 +121,13 @@ export default async function RootLayout({ children, params }: { children: React
         </main>
         <Footer lang={lang} rssLabel={dict.common.rssFeed} />
         <PageViewTracker />
-        <Analytics />
-        <SpeedInsights />
+        {/* Their scripts are served by Vercel itself (/_vercel/*); elsewhere they 404. */}
+        {process.env.VERCEL && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );

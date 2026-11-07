@@ -25,10 +25,12 @@ export function localePath(lang: Lang, path: string): string {
   return clean === "/" ? `/${lang}` : `/${lang}${clean}`;
 }
 
-// The language of a browser pathname and the path without its prefix.
+// The language of a pathname and the path without its prefix. Accepts the
+// internal "/en/..." form too: on English pages usePathname() can return the
+// rewritten path rather than the visible one.
 export function splitLocale(pathname: string): { lang: Lang; path: string } {
   const [, first, ...rest] = pathname.split("/");
-  if (isValidLang(first) && first !== DEFAULT_LANG) return { lang: first, path: `/${rest.join("/")}` };
+  if (isValidLang(first)) return { lang: first, path: `/${rest.join("/")}` };
   return { lang: DEFAULT_LANG, path: pathname || "/" };
 }
 

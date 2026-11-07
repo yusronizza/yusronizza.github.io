@@ -1,64 +1,87 @@
-# yusronizza.github.io
+# yusronizza.com
 
-Personal portfolio, CV, and blog, built with Next.js (App Router) and Tailwind CSS, exported as a fully static site for GitHub Pages.
+Personal portfolio, CV, and blog in English, Japanese, and Indonesian. Next.js (App Router) and Tailwind CSS,
+with content served by [`yusronizza-api`](../yusronizza-api) and edited in
+[`yusronizza-admin`](../yusronizza-admin). Hosted on Vercel.
 
 ## Getting started
 
 ```bash
 npm install
+cp .env.example .env.local   # point API_URL at a running API, set API_CLIENT_KEY
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). You need the API running (`make docker-up` in
+`yusronizza-api`) and a client key for this site, created once with:
 
 ```bash
-npm run build   # static export to ./out
-npm run lint
+curl -X POST http://localhost:8080/api/v1/admin/clients \
+  -H "Authorization: Bearer $ADMIN_API_KEY" -H "Content-Type: application/json" \
+  -d '{"name":"yusronizza-site"}'
 ```
 
-## Editing content
+## Environment variables
 
-All content is mocked in plain TypeScript modules — there is no CMS or database. Edit the files below and the site rebuilds from them automatically:
+| Variable | Required | Purpose |
+|---|---|---|
+| `API_URL` | Yes | Base URL of `yusronizza-api` (server-side only). |
+| `API_CLIENT_KEY` | Yes | This site's registered client key; public API reads require it. |
+| `NEXT_PUBLIC_SITE_URL` | Yes in production | Canonical origin for links, sitemap, feeds, and Open Graph. |
+| `REVALIDATE_SECRET` | Recommended | Secret for `POST /api/revalidate`; set the same value as the API's `SITE_REVALIDATE_SECRET`. |
+| `TRUST_FORWARDED_FOR` | Only off Vercel | `true` when a proxy you control overwrites `X-Forwarded-For`. On Vercel it's trusted automatically. |
 
-| What                          | File                          |
-| ------------------------------ | ------------------------------ |
-| Name, social links, nav, SEO defaults | `lib/config/site.ts`     |
-| About/CV content (bio, experience, education, skills) | `lib/data/profile.ts` |
-| Projects                       | `lib/data/projects.ts`        |
-| Blog posts                     | `lib/data/posts.ts`           |
+## How it works
 
-Set `NEXT_PUBLIC_SITE_URL` (see `.env.example`) to your production domain — it drives canonical URLs, the sitemap, and Open Graph tags.
-
-## Project structure
+- **Languages.** Every page lives under `app/[lang]`. English is served at unprefixed URLs (`/blog/x`),
+  Japanese and Indonesian at `/ja/...` and `/id/...`; `proxy.ts` rewrites unprefixed URLs to `/en` internally
+  and redirects `/en/...` to the unprefixed form. Content comes translated from the API; interface text is in
+  `lib/i18n/dictionaries.ts`.
+- **Caching.** Pages are static per language and refreshed in the background (ISR). API fetches carry cache
+  tags (`posts`, `projects`, `profile`, `menu`). After every admin edit the API calls `POST /api/revalidate`
+  with the affected tags, so changes appear within seconds; otherwise pages refresh hourly.
+- **Talking to the API.** Only the server calls the API. The contact form and page-view beacon post to this
+  site's own `/api/contact` and `/api/pageview`, which forward them with the client key and the visitor's IP
+  (`X-Visitor-IP`), so rate limits and visitor counts are per visitor.
+- **SEO.** Per-language canonical URLs, `hreflang` alternates with `x-default`, `og:locale`, JSON-LD
+  (`Person`, `WebSite`, `BlogPosting`, `BreadcrumbList`), a sitemap listing every page in every language,
+  RSS feeds (`/feed.xml`, `/ja/feed.xml`, `/id/feed.xml`), and a generated Open Graph card per post.
+- **Security.** Content-Security-Policy and HSTS (`next.config.ts`); the API is never exposed through this
+  domain; `/api/contact` and `/api/pageview` reject cross-site posts.
 
 ```
-app/                  Routing & page composition (thin — delegates to components/lib)
-  about/, cv/, projects/, blog/   Route segments
-  sitemap.ts, robots.ts, manifest.ts, opengraph-image.tsx   SEO file conventions
-components/
-  layout/              Header, Footer, Container
-  ui/                  Generic presentational primitives (Card, Badge, Button, ...)
-  home/, projects/, blog/, cv/   Domain-specific presentational components
-  seo/                 JSON-LD structured data renderer
-  theme/               Dark/light theme toggle + FOUC-prevention script
+app/
+  [lang]/            pages (home, about, cv, projects, blog, contact, l/[code]) + layout, feeds, OG images
+  api/               contact, pageview, revalidate route handlers
+  sitemap.ts, robots.ts, manifest.ts, icons
+components/          layout, home, blog, projects, cv, ui
 lib/
-  config/site.ts       Single source of truth for site identity & nav
-  data/                 Dummy content + accessor functions (profile, projects, posts)
-  seo/                  Metadata + JSON-LD schema builders
-  utils/                Formatting helpers
+  api/               server-only API client with cache tags
+  i18n/              locales, URL helpers, dictionaries
+  seo/               metadata (hreflang) and JSON-LD builders
+  server/            proxy-to-api helper for the route handlers
+proxy.ts             language routing
 ```
 
-This separation keeps routing, presentation, and data access independent: swapping the dummy data module for a real CMS or API later only touches `lib/data/`.
+## Testing
 
-## SEO
+```bash
+npm run typecheck
+npm run lint
+E2E_BASE_URL=http://localhost:3000 npm run test:e2e   # Playwright, against a running site + API
+```
 
-- Per-page `generateMetadata`/static `metadata` with canonical URLs, Open Graph and Twitter Card tags.
-- `sitemap.ts` and `robots.ts` generated from the same data that powers the pages, so they never drift out of sync.
-- JSON-LD structured data (`Person`, `WebSite`, `BlogPosting`, `BreadcrumbList`) for richer search results.
-- A generated default Open Graph image (`app/opengraph-image.tsx`).
+The smoke suite checks every page in every language (status, `<html lang>`, no console errors or horizontal
+overflow), hreflang and canonical tags, the language switcher, real 404s, the sitemap and feeds, the contact
+form, and the mobile menu. CI (`.github/workflows/ci.yml`) runs type checking, lint, `npm audit`, and a build.
 
-## Deployment
+## Deploying (Vercel)
 
-Static export (`output: "export"` in `next.config.ts`) builds to `out/`, which can be hosted on any static file host. A GitHub Actions workflow (`.github/workflows/deploy.yml`) builds and deploys `out/` to GitHub Pages on every push to `main`.
+1. Import the repository in Vercel (framework: Next.js) and set the environment variables above.
+2. On the API, set `SITE_REVALIDATE_URL=https://yusronizza.com/api/revalidate` and the matching
+   `SITE_REVALIDATE_SECRET`.
+3. Vercel deploys previews per branch and production from `main`. Vercel Analytics and Speed Insights are
+   enabled automatically there (they're skipped on other hosts).
 
-To enable it: in the repo's Settings → Pages, set the source to "GitHub Actions".
+The repository is still named `yusronizza.github.io`, but the site no longer runs on GitHub Pages: it needs a
+server for language routing, on-demand revalidation, and the contact/page-view routes.

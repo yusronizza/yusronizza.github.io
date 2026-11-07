@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LANG_LABELS, LANG_NAMES, SUPPORTED_LANGS, localePath, splitLocale, type Lang } from "@/lib/i18n";
 
-// Links to the current page in each language. Plain links (not a cookie)
-// so every language version has its own crawlable URL.
+// Links to the current page in each language: real URLs (not a cookie), so
+// every language version is crawlable. Plain <a> rather than <Link>:
+// switching language swaps the root layout (<html lang>), which is a full
+// page load anyway, and prefetching across root layouts fails.
 export function LanguageSwitcher({ current, label }: { current: Lang; label: string }) {
   const { path } = splitLocale(usePathname());
   return (
@@ -18,9 +19,9 @@ export function LanguageSwitcher({ current, label }: { current: Lang; label: str
               {LANG_LABELS[code]}
             </span>
           ) : (
-            <Link href={localePath(code, path)} hrefLang={code} lang={code} title={LANG_NAMES[code]} className="text-muted transition-colors hover:text-foreground">
+            <a href={localePath(code, path)} hrefLang={code} lang={code} title={LANG_NAMES[code]} className="text-muted transition-colors hover:text-foreground">
               {LANG_LABELS[code]}
-            </Link>
+            </a>
           )}
         </span>
       ))}

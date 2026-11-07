@@ -69,7 +69,7 @@ export function ContactForm({ labels: t }: { labels: Dictionary["contact"] }) {
   const isSubmitting = state === "submitting";
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate aria-busy={state === "submitting"}>
       <div className="grid gap-5 sm:grid-cols-2">
         <Field
           id="name"
@@ -113,6 +113,8 @@ export function ContactForm({ labels: t }: { labels: Dictionary["contact"] }) {
         </label>
         <textarea
           id="message"
+          aria-invalid={fieldErrors.message ? true : undefined}
+          aria-describedby={fieldErrors.message ? "message-error" : undefined}
           rows={6}
           required
           disabled={isSubmitting}
@@ -122,7 +124,7 @@ export function ContactForm({ labels: t }: { labels: Dictionary["contact"] }) {
           className="resize-y rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
         {fieldErrors.message && (
-          <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors.message}</p>
+          <p id="message-error" className="text-xs text-red-600 dark:text-red-400">{fieldErrors.message}</p>
         )}
       </div>
 
@@ -178,6 +180,8 @@ function Field({
       </label>
       <input
         id={id}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
         type={type}
         required={required}
         disabled={disabled}
@@ -186,7 +190,7 @@ function Field({
         placeholder={placeholder}
         className="rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       />
-      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p id={`${id}-error`} className="text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 }

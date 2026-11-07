@@ -20,6 +20,16 @@ export function generateStaticParams() {
   return [];
 }
 
+// The page header is the post's <h1>. Post bodies often start with their own
+// "# Title", which would make a second <h1>: drop a leading one and demote
+// any others, so each page has exactly one top-level heading.
+function bodyHtml(html: string): string {
+  return html
+    .replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>\s*/, "")
+    .replace(/<h1(\s|>)/g, "<h2$1")
+    .replace(/<\/h1>/g, "</h2>");
+}
+
 export async function generateMetadata({ params }: LangSlugParams): Promise<Metadata> {
   const [{ slug }, lang] = await Promise.all([params, resolveLang(params)]);
   try {
@@ -74,7 +84,7 @@ export default async function BlogPostPage({ params }: LangSlugParams) {
             ))}
           </div>
           {/* HTML rendered by the API's Markdown renderer, which strips raw HTML. */}
-          <div className="prose-content" dangerouslySetInnerHTML={{ __html: post.contentHtml }} />
+          <div className="prose-content" dangerouslySetInnerHTML={{ __html: bodyHtml(post.contentHtml) }} />
         </Section>
       </article>
     </>

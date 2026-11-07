@@ -46,3 +46,6 @@ next-env.d.ts
 .claude
 /.claude
 /sub-project
+# Playwright
+/test-results/
+/playwright-report/
