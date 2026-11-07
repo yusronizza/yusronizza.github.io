@@ -34,7 +34,10 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
-  images: { unoptimized: true },
+  // Served by a Next.js server (Vercel), so images are resized and converted
+  // to modern formats on demand (unoptimized was only needed for the old
+  // GitHub Pages static export).
+  images: { formats: ["image/avif", "image/webp"] },
   async headers() {
     return [{ source: "/(.*)", headers: SECURITY_HEADERS }];
   },

@@ -83,5 +83,5 @@ form, and the mobile menu. CI (`.github/workflows/ci.yml`) runs type checking, l
 3. Vercel deploys previews per branch and production from `main`. Vercel Analytics and Speed Insights are
    enabled automatically there (they're skipped on other hosts).
 
-The repository is still named `yusronizza.github.io`, but the site no longer runs on GitHub Pages: it needs a
-server for language routing, on-demand revalidation, and the contact/page-view routes.
+The site is not served from GitHub Pages: it needs a server for language routing, on-demand revalidation, the
+contact/page-view routes, and image optimization.
